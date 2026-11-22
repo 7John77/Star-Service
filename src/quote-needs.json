@@ -1,0 +1,26 @@
+{
+  "Προμήθεια πυροσβεστήρων": {
+    "new": ["Νέος εξοπλισμός", "New equipment"],
+    "replace": ["Αντικατάσταση", "Replacement"],
+    "expand": ["Συμπλήρωση εξοπλισμού", "Additional equipment"]
+  },
+  "Πυρανίχνευση / πυροπροστασία": {
+    "detection": ["Πυρανίχνευση", "Fire detection"],
+    "suppression": ["Σύστημα κατάσβεσης", "Suppression system"],
+    "existing": ["Εξοπλισμός για υπάρχον σύστημα", "Equipment for an existing system"]
+  },
+  "Συντήρηση / αναγόμωση": {
+    "inspection": ["Έλεγχος & συντήρηση", "Inspection & servicing"],
+    "refill": ["Αναγόμωση", "Refill"],
+    "scheduled": ["Οργάνωση τακτικής συντήρησης", "Scheduled servicing"]
+  },
+  "Μελέτη / κάτοψη": {
+    "new-site": ["Νέος χώρος", "New premises"],
+    "renovation": ["Ανακαίνιση ή αλλαγή χρήσης", "Renovation or change of use"],
+    "existing-plan": ["Εξοπλισμός βάσει μελέτης", "Equipment based on a study"]
+  },
+  "Βοήθεια επιλογής": {
+    "equipment": ["Επιλογή εξοπλισμού", "Equipment selection"],
+    "review": ["Τι χρειάζεται ο χώρος μου", "What my premises need"]
+  }
+}

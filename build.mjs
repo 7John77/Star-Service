@@ -1,0 +1,43 @@
+import { build } from 'esbuild'
+import { mkdir, readdir, readFile, writeFile, copyFile } from 'node:fs/promises'
+
+await mkdir('dist/server', { recursive: true })
+await mkdir('dist/.openai', { recursive: true })
+const assets = {
+  '/inter-greek.woff2': ['inter-greek.woff2', 'font/woff2'],
+  '/inter-latin.woff2': ['inter-latin.woff2', 'font/woff2'],
+  '/catalogue.json': ['catalogue.json', 'application/json; charset=utf-8'],
+  '/style.css': ['style.css', 'text/css; charset=utf-8'],
+  '/fonts.css': ['fonts.css', 'text/css; charset=utf-8'],
+  '/commissioner-greek.woff2': ['commissioner-greek.woff2', 'font/woff2'],
+  '/commissioner-latin.woff2': ['commissioner-latin.woff2', 'font/woff2'],
+  '/space-grotesk-latin.woff2': ['space-grotesk-latin.woff2', 'font/woff2'],
+  '/inbox': ['inbox.html', 'text/html; charset=utf-8'],
+  '/inbox.js': ['inbox.js', 'text/javascript; charset=utf-8'],
+  '/star-service-logo.svg': ['star-service-logo.svg', 'image/svg+xml'],
+  '/star-service-logo-dark.svg': ['star-service-logo-dark.svg', 'image/svg+xml'],
+  '/star-service-icon.svg': ['star-service-icon.svg', 'image/svg+xml'],
+  '/star-service-icon.png': ['star-service-icon.png', 'image/png'],
+  '/hero.webp': ['hero.webp', 'image/webp'],
+}
+for (const file of await readdir('src/legacy')) {
+  if (file.endsWith('.webp')) assets['/legacy/' + file] = ['legacy/' + file, 'image/webp']
+}
+const template = await readFile('src/index.html', 'utf8')
+function page(english) {
+  return {
+    body: template.replace(/\[\[([^|]*?)\|([^]*?)\]\]/g, (_, greek, en) => english ? en : greek),
+    type: 'text/html; charset=utf-8',
+  }
+}
+const embedded = { '/': page(false), '/en/': page(true) }
+for (const [path, [name, type]] of Object.entries(assets)) {
+  const data = await readFile('src/' + name)
+  embedded[path] = { body: data.toString(/^(image|font)\//.test(type) ? 'base64' : 'utf8'), type }
+}
+const bundle = await build({ entryPoints: ['src/site.js'], bundle: true, write: false, format: 'esm', minify: true })
+embedded['/site.js'] = { body: bundle.outputFiles[0].text, type: 'text/javascript; charset=utf-8' }
+const worker = await readFile('src/worker.js', 'utf8')
+const quoteNeeds = JSON.parse(await readFile('src/quote-needs.json', 'utf8'))
+await writeFile('dist/server/index.js', 'const assets = ' + JSON.stringify(embedded) + '\nconst quoteNeeds = ' + JSON.stringify(quoteNeeds) + '\n' + worker)
+await copyFile('.openai/hosting.json', 'dist/.openai/hosting.json')
