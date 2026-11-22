@@ -1,4 +1,5 @@
 import { build } from 'esbuild'
+import { dirname } from 'node:path'
 import { mkdir, readdir, readFile, writeFile, copyFile } from 'node:fs/promises'
 
 await mkdir('dist/server', { recursive: true })
@@ -12,8 +13,6 @@ const assets = {
   '/commissioner-greek.woff2': ['commissioner-greek.woff2', 'font/woff2'],
   '/commissioner-latin.woff2': ['commissioner-latin.woff2', 'font/woff2'],
   '/space-grotesk-latin.woff2': ['space-grotesk-latin.woff2', 'font/woff2'],
-  '/inbox': ['inbox.html', 'text/html; charset=utf-8'],
-  '/inbox.js': ['inbox.js', 'text/javascript; charset=utf-8'],
   '/star-service-logo.svg': ['star-service-logo.svg', 'image/svg+xml'],
   '/star-service-logo-dark.svg': ['star-service-logo-dark.svg', 'image/svg+xml'],
   '/star-service-icon.svg': ['star-service-icon.svg', 'image/svg+xml'],
@@ -41,3 +40,9 @@ const worker = await readFile('src/worker.js', 'utf8')
 const quoteNeeds = JSON.parse(await readFile('src/quote-needs.json', 'utf8'))
 await writeFile('dist/server/index.js', 'const assets = ' + JSON.stringify(embedded) + '\nconst quoteNeeds = ' + JSON.stringify(quoteNeeds) + '\n' + worker)
 await copyFile('.openai/hosting.json', 'dist/.openai/hosting.json')
+
+for (const [path, asset] of Object.entries(embedded)) {
+  const file = 'dist/public' + (path.endsWith('/') ? path + 'index.html' : path)
+  await mkdir(dirname(file), { recursive: true })
+  await writeFile(file, /^(image|font)\//.test(asset.type) ? Buffer.from(asset.body, 'base64') : asset.body)
+}

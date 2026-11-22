@@ -190,7 +190,7 @@ export function setupQuote() {
       introProduct.hidden = true
       go(0, false)
       status.className = 'success'
-      status.textContent = tr('Το αίτημα καταχωρίστηκε. Κωδικός: ', 'Your request was submitted. Reference: ') + result.reference
+      status.textContent = tr('Το αίτημα στάλθηκε. Κωδικός: ', 'Your request was sent. Reference: ') + result.reference
     } catch (error) {
       status.className = 'error'
       status.textContent = error instanceof TypeError || error instanceof SyntaxError

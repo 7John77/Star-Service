@@ -4,16 +4,28 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "rewrites": [
-    { "source": "/inbox", "destination": "/api/star-service?__star_route=/inbox" },
-    { "source": "/api/studies", "destination": "/api/star-service?__star_route=/api/studies" },
-    { "source": "/api/inbox", "destination": "/api/star-service?__star_route=/api/inbox" },
-    { "source": "/api/inbox/:path*", "destination": "/api/star-service?__star_route=/api/inbox/:path*" }
+    {
+      "source": "/api/studies",
+      "destination": "/api/star-service"
+    }
   ],
   "headers": [
-    { "source": "/(.*)", "headers": [
-      { "key": "X-Content-Type-Options", "value": "nosniff" },
-      { "key": "Referrer-Policy", "value": "same-origin" },
-      { "key": "Content-Security-Policy", "value": "default-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'" }
-    ] }
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
+        }
+      ]
+    }
   ]
 }
