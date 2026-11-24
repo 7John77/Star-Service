@@ -1,26 +1,6 @@
 import { english, make, tr } from './locale.js'
+import { categories, normalize, productKey } from './catalogue-fields.js'
 
-const categories = [
-  ['all', 'Όλες οι κατηγορίες', 'All categories'],
-  ['powder', 'Ξηράς σκόνης', 'Dry powder'],
-  ['co2', 'CO₂', 'CO₂'],
-  ['foam', 'Αφρού', 'Foam'],
-  ['wet', 'Υγρού χημικού', 'Wet chemical'],
-  ['special', 'Ειδικές εφαρμογές', 'Special applications'],
-  ['mounts', 'Βάσεις, θήκες & εξαρτήματα', 'Mounts, cases & accessories'],
-  ['agents', 'Υλικά κατάσβεσης', 'Extinguishing agents'],
-  ['cabinets', 'Φωλιές & σταθμοί', 'Fire hose cabinets & stations'],
-  ['detection', 'Πυρανίχνευση', 'Fire detection'],
-  ['doors', 'Πόρτες πυράντοχες', 'Fire-resistant doors'],
-  ['rok', 'Κατάλογος POK', 'POK catalogue'],
-  ['parts', 'Ανταλλακτικά πυροσβεστήρων', 'Extinguisher spare parts'],
-  ['hoses', 'Σωλήνες, αυλοί & σύνδεσμοι', 'Hoses, nozzles & couplings'],
-  ['systems', 'Συστήματα κατάσβεσης', 'Fire suppression systems'],
-  ['curtains', 'Πυροκουρτίνες', 'Fire curtains'],
-  ['safety', 'Μέσα προστασίας & πρώτες βοήθειες', 'Protective equipment & first aid'],
-  ['gadgets', 'Είδη πυρασφάλειας', 'Fire safety accessories'],
-  ['other', 'Λοιπός εξοπλισμός', 'Other equipment'],
-]
 const categoryMap = new Map(categories.map(([key, el, en]) => [key, tr(el, en)]))
 const sections = [
   ['extinguishers', 'Πυροσβεστήρες', 'Fire extinguishers', ['powder', 'co2', 'foam', 'wet', 'special']],
@@ -36,10 +16,11 @@ const sections = [
 ]
 const sectionByType = new Map(sections.flatMap(section => section[3].map(type => [type, section[0]])))
 const featured = /^(?:Πυροσβεστήρας [36] ?Kg Ξηράς Σκόνης|Πυροσβεστήρας 2 ?Kg CO2 - Έξοδος στο πλάι|Πυροσβεστήρας 9 ?Lt ABF|Τροχήλατος Πυροσβεστήρας 100 ?Lt Αφρού)$/i
-const normalize = (value) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase().replace(/₂/g, '2').replace(/[^\p{L}\p{N}]/gu, '')
 const productTitle = (product) => english ? product.en : product.title
 const illustrativePhoto = tr('Ενδεικτική φωτογραφία', 'Illustrative photo')
 const pageSize = 12
+const euro = new Intl.NumberFormat(english ? 'en-IE' : 'el-GR', { style: 'currency', currency: 'EUR' })
+const priceText = (cents) => euro.format(cents / 100)
 
 export async function setupCatalogue(pickQuote) {
   const input = document.getElementById('catalog-search')
@@ -51,6 +32,8 @@ export async function setupCatalogue(pickQuote) {
   const dialog = document.getElementById('product-dialog')
   const detail = document.getElementById('product-detail')
   const reduce = matchMedia('(prefers-reduced-motion: reduce)')
+  let prices = {}
+  let openedProduct
   let items = [], visible = pageSize, section = 'all', type = 'all'
 
   function chooseSection(value, subtype = 'all', clearSearch = false) {
@@ -99,7 +82,14 @@ export async function setupCatalogue(pickQuote) {
     image.classList.toggle('product-image-missing', !source)
   }
 
+  function showPrice(node, product) {
+    const cents = prices[productKey(product)]
+    node.hidden = !Number.isInteger(cents)
+    node.textContent = node.hidden ? '' : priceText(cents)
+  }
+
   function openProduct(product) {
+    openedProduct = product
     const title = productTitle(product)
     document.getElementById('product-title').textContent = title
     detail.replaceChildren()
@@ -133,6 +123,9 @@ export async function setupCatalogue(pickQuote) {
     }
     if (product.imageIllustrative) gallery.append(make('figcaption', illustrativePhoto, 'product-photo-note'))
     detail.append(gallery)
+    const price = make('p', '', 'product-price')
+    showPrice(price, product)
+    detail.append(price)
     if (product.code) detail.append(make('p', tr('Κωδικός', 'Code') + ' · ' + product.code, 'product-code'))
     if (!product.images.length) detail.append(make('p', tr('Δεν υπάρχει διαθέσιμη φωτογραφία για αυτό το είδος.', 'No photo is available for this item.'), 'product-source-note'))
     if (product.features?.length) {
@@ -190,6 +183,10 @@ export async function setupCatalogue(pickQuote) {
     copy.append(make('small', label), make('strong', productTitle(product)))
     button.classList.toggle('featured', product.isFeatured)
     if (product.code || product.capacity) copy.append(make('span', product.code || product.capacity))
+    const price = make('strong', '', 'product-price')
+    showPrice(price, product)
+    button.priceProduct = product
+    copy.append(price)
     if (product.imageIllustrative) copy.append(make('span', illustrativePhoto, 'product-photo-note'))
     button.append(image, copy, make('span', '+', 'product-plus'))
     button.lastElementChild.setAttribute('aria-hidden', 'true')
@@ -245,6 +242,12 @@ export async function setupCatalogue(pickQuote) {
     items.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
     buildFilters()
     chooseSection(section, type)
+    fetch('/api/prices').then(response => response.ok ? response.json() : null).then(data => {
+      if (!data?.prices) return
+      prices = data.prices
+      for (const button of grid.children) showPrice(button.querySelector('.product-price'), button.priceProduct)
+      if (dialog.open && openedProduct) showPrice(detail.querySelector('.product-price'), openedProduct)
+    }).catch(() => {})
   } catch {
     status.textContent = tr('Ο κατάλογος δεν μπόρεσε να φορτώσει. Ανανεώστε τη σελίδα.', 'The catalogue could not load. Reload the page.')
   }

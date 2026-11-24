@@ -83,7 +83,7 @@ export function setupEquipment(pickQuote) {
       pickQuote(item.purpose, tr(...item.title) + ' · ' + label)
       document.getElementById('study').scrollIntoView({ behavior: reduce.matches ? 'instant' : 'smooth' })
     }))
-    actions.append(quote)
+
     if (documentUrl) {
       const label = category === 'rok'
         ? tr('Άνοιγμα καταλόγου PDF', 'Open PDF catalogue')
@@ -94,17 +94,31 @@ export function setupEquipment(pickQuote) {
       source.rel = 'noopener'
       actions.append(source)
     }
-    const catalogueCategory = { mounts: 'accessories', cabinets: 'water', agents: 'agents', detection: 'detection', systems: 'systems' }[category]
+    const catalogueCategory = { mounts: 'accessories', cabinets: 'water', agents: 'agents', detection: 'detection', systems: 'systems', rok: 'rok' }[category]
     if (catalogueCategory) {
-      const catalogue = make('a', tr('Δείτε προϊόντα στον κατάλογο', 'View catalogue products'), 'button button-outline')
+      const catalogue = make('a', '', 'equipment-catalogue-action')
+      const copy = make('span')
+      copy.append(
+        make('strong', tr('Εξερευνήστε τον κατάλογο', 'Explore the catalogue')),
+        make('small', tr('Δείτε τα προϊόντα αυτής της κατηγορίας', 'See the products in this category')),
+      )
+      const arrow = make('span', '↓', 'equipment-catalogue-arrow')
+      arrow.setAttribute('aria-hidden', 'true')
+      catalogue.append(copy, arrow)
       catalogue.href = '#catalog'
       catalogue.dataset.filterLink = catalogueCategory
       catalogue.addEventListener('click', (event) => {
         event.preventDefault()
-        close(() => document.getElementById('catalog').scrollIntoView({ behavior: reduce.matches ? 'instant' : 'smooth' }))
+        close(() => {
+          if (location.hash !== '#catalog') history.pushState(null, '', '#catalog')
+          document.getElementById('catalog-title').focus({ preventScroll: true })
+          document.getElementById('catalog').scrollIntoView({ behavior: reduce.matches ? 'instant' : 'smooth' })
+        })
       })
-      actions.append(catalogue)
+      actions.prepend(catalogue)
+      quote.classList.replace('button-red', 'button-outline')
     }
+    actions.append(quote)
     showGallery(category, index)
     if (!reduce.matches) details.animate([{ opacity: .38, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 290, easing: 'ease-out' })
   }

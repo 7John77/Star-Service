@@ -36,6 +36,10 @@ for (const [path, [name, type]] of Object.entries(assets)) {
 }
 const bundle = await build({ entryPoints: ['src/site.js'], bundle: true, write: false, format: 'esm', minify: true })
 embedded['/site.js'] = { body: bundle.outputFiles[0].text, type: 'text/javascript; charset=utf-8' }
+const admin = await build({ entryPoints: ['src/admin.js'], bundle: true, write: false, format: 'esm', minify: true })
+embedded['/admin/'] = { body: await readFile('src/admin.html', 'utf8'), type: 'text/html; charset=utf-8' }
+embedded['/admin.js'] = { body: admin.outputFiles[0].text, type: 'text/javascript; charset=utf-8' }
+embedded['/admin.css'] = { body: await readFile('src/admin.css', 'utf8'), type: 'text/css; charset=utf-8' }
 const worker = await readFile('src/worker.js', 'utf8')
 const quoteNeeds = JSON.parse(await readFile('src/quote-needs.json', 'utf8'))
 await writeFile('dist/server/index.js', 'const assets = ' + JSON.stringify(embedded) + '\nconst quoteNeeds = ' + JSON.stringify(quoteNeeds) + '\n' + worker)

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Διαχείριση καταλόγου · Star Service</title>
+  <link rel="icon" href="/star-service-icon.svg">
+  <link rel="stylesheet" href="/fonts.css">
+  <link rel="stylesheet" href="/admin.css">
+  <script type="module" src="/admin.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a href="/" aria-label="Αρχική Star Service"><img src="/star-service-logo.svg" width="174" height="42" alt="Star Service"></a>
+      <div class="topbar-actions">
+        <a href="/#catalog">Δείτε το site <span aria-hidden="true">↗</span></a>
+        <button type="button" class="quiet" id="logout" hidden>Έξοδος</button>
+      </div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="login panel" id="login" aria-labelledby="login-title" hidden>
+      <p class="eyebrow">STAR SERVICE</p>
+      <h1 id="login-title">Διαχείριση καταλόγου</h1>
+      <p class="muted">Συνδεθείτε για να ενημερώσετε τις τιμές των προϊόντων σας.</p>
+      <form id="login-form">
+        <label for="password">Κωδικός πρόσβασης</label>
+        <input id="password" name="password" type="password" required maxlength="256" autocomplete="current-password">
+        <button type="submit" class="primary">Σύνδεση <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+    <section id="dashboard" aria-labelledby="dashboard-title" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow">ΚΑΤΑΛΟΓΟΣ STAR SERVICE</p>
+          <h1 id="dashboard-title">Τιμές προϊόντων</h1>
+          <p class="muted">Βρείτε το προϊόν με τον κωδικό του και δημοσιεύστε την τιμή του.</p>
+        </div>
+        <div class="pricing-count"><strong id="priced-total">0</strong><span>προϊόντα με τιμή</span></div>
+      </div>
+      <div class="panel catalogue-panel">
+        <div class="filters">
+          <label for="search">Κωδικός ή όνομα προϊόντος
+            <input type="search" id="search" placeholder="π.χ. 0135305 ή Ball Valve" autocomplete="off">
+          </label>
+          <label for="category">Κατηγορία
+            <select id="category"><option value="">Όλες οι κατηγορίες</option></select>
+          </label>
+          <label for="pricing">Κατάσταση τιμής
+            <select id="pricing">
+              <option value="">Όλα τα προϊόντα</option>
+              <option value="published">Με τιμή</option>
+              <option value="unpriced">Χωρίς τιμή</option>
+            </select>
+          </label>
+        </div>
+        <p id="result-count" class="result-count" aria-live="polite"></p>
+        <div id="product-list" class="product-list"></div>
+        <nav class="pagination" id="pagination" aria-label="Σελίδες αποτελεσμάτων">
+          <button type="button" class="quiet" id="previous" aria-label="Προηγούμενη σελίδα">←</button>
+          <span id="page"></span>
+          <button type="button" class="quiet" id="next" aria-label="Επόμενη σελίδα">→</button>
+        </nav>
+      </div>
+    </section>
+    <p class="notice" id="notice" role="status">Έλεγχος σύνδεσης…</p>
+  </main>
+</body>
+</html>

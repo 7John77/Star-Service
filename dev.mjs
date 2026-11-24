@@ -1,3 +1,4 @@
+import { handlePrices } from './server/prices.js'
 import { createServer } from 'node:http'
 import { Readable } from 'node:stream'
 import { execFileSync } from 'node:child_process'
@@ -12,7 +13,12 @@ createServer(async (incoming, outgoing) => {
   const request = new Request('http://' + incoming.headers.host + incoming.url, {
     method, headers, ...(['GET', 'HEAD'].includes(method) ? {} : { body: Readable.toWeb(incoming), duplex: 'half' }),
   })
-  const response = await worker.fetch(request)
+  const path = new URL(request.url).pathname
+  if (path === '/admin') {
+    outgoing.writeHead(308, { Location: '/admin/' }).end()
+    return
+  }
+  const response = await (path === '/api/prices' ? handlePrices(request) : worker.fetch(request))
   outgoing.writeHead(response.status, Object.fromEntries(response.headers))
   if (response.body) Readable.fromWeb(response.body).pipe(outgoing)
   else outgoing.end()
