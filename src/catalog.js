@@ -209,8 +209,26 @@ export function setupCatalogue(pickQuote, initialDepartment, entry) {
     const image = make('img')
     image.fetchPriority = 'high'
     const photoNote = make('figcaption', '', 'product-photo-note')
+    const firstPhoto = product.images[0]
+    const cover = coverImage(product)
+    const preview = button.querySelector('img')
+    const isCategoryCover = cover && preview?.currentSrc === new URL(cover, location.href).href
+    const previewPhoto = preview?.naturalWidth && !preview.classList.contains('product-image-missing') && !isCategoryCover
+      ? preview.currentSrc : ''
+    let selectedPhoto = 0
     image.dataset.productAlt = title
-    setImage(image, [...product.images.slice(0, 3), product.thumbnail], 768, coverImage(product), photoNote, product.imageIllustrative)
+    const sources = [...product.images.slice(0, 3), product.thumbnail]
+    setImage(image, [previewPhoto, ...sources], 768, cover, photoNote, product.imageIllustrative)
+    if (previewPhoto && firstPhoto && previewPhoto !== new URL(firstPhoto, location.href).href) {
+      const full = new Image()
+      full.referrerPolicy = 'no-referrer'
+      full.src = firstPhoto
+      full.decode().then(() => {
+        if (selectedPhoto === 0 && dialog.open && image.isConnected) {
+          setImage(image, [firstPhoto, previewPhoto, ...sources], 768, cover, photoNote, product.imageIllustrative)
+        }
+      }).catch(() => {})
+    }
     gallery.append(image)
     if (product.images.length > 1) {
       const thumbs = make('div', '', 'product-thumbs')
@@ -227,7 +245,8 @@ export function setupCatalogue(pickQuote, initialDepartment, entry) {
         choice.append(thumbnail)
         choice.addEventListener('click', () => {
           if (choice.getAttribute('aria-pressed') === 'true') return
-          setImage(image, [url, ...product.images.slice(0, 3), product.thumbnail], 768, coverImage(product), photoNote, product.imageIllustrative)
+          selectedPhoto = index
+          setImage(image, [url, ...sources], 768, cover, photoNote, product.imageIllustrative)
           for (const other of thumbs.children) other.setAttribute('aria-pressed', String(other === choice))
           if (!reduce.matches) image.animate([{ opacity: .3, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 270 })
         })

@@ -1138,3 +1138,12 @@ body:has(#product-dialog[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   #product-dialog[open] { animation: none; }
 }
+.entry-choice b, .product-card-copy .product-cta b { font-size: 0; }
+.entry-choice b::before, .product-card-copy .product-cta b::before {
+  content: "";
+  width: .49rem;
+  height: .49rem;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg) translate(-.06rem,.06rem);
+}
