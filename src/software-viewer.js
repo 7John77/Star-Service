@@ -18,7 +18,7 @@ function createGeometry(mesh) {
   const texture = material.map?.image
   const pixels = texture?.getContext('2d').getImageData(0, 0, texture.width, texture.height).data
   return {
-    color, pixels, texture, indices: geometry.index.array, position, normal, uv,
+    color, pixels, texture, textureVersion: material.map?.version, indices: geometry.index.array, position, normal, uv,
     points: new Float32Array(position.count * 4),
     diffuse: new Float32Array(position.count),
     gloss: new Float32Array(position.count),
@@ -132,8 +132,11 @@ export function createSoftwareRenderer(domElement) {
       image.data.fill(0)
       scene.traverse((mesh) => {
         if (!mesh.isMesh) return
-        if (!shapes.has(mesh)) shapes.set(mesh, createGeometry(mesh))
-        const shape = shapes.get(mesh)
+        let shape = shapes.get(mesh)
+        if (!shape || shape.textureVersion !== mesh.material.map?.version) {
+          shape = createGeometry(mesh)
+          shapes.set(mesh, shape)
+        }
         transform(shape, mesh, camera, width, height)
         rasterize(shape, image.data, depth, width, height)
       })

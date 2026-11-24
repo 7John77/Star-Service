@@ -54,7 +54,7 @@ function labelTexture(spec) {
   return texture
 }
 
-function buildModel(type) {
+function buildModel(type, redraw) {
   const spec = specs[type]
   const { radius, height } = spec
   const model = new Group()
@@ -95,8 +95,22 @@ function buildModel(type) {
 
   const texture = labelTexture(spec)
   const label = new MeshStandardMaterial({ map: texture, roughness: .76 })
-  const width = 1.64
-  item(new CylinderGeometry(radius + .006, radius + .006, .86, 48, 1, true, -width / 2, width), label, [0, 1.25, 0])
+  const labelRadius = radius + .006
+  const labelArc = type === 'powder' ? 1.7 : 1.64
+  const labelHeight = type === 'powder' ? labelRadius * labelArc * (110 / 80) : .86
+  item(new CylinderGeometry(labelRadius, labelRadius, labelHeight, 48, 1, true, -labelArc / 2, labelArc), label, [0, 1.23, 0])
+  if (type === 'powder') {
+    const artwork = new Image()
+    artwork.addEventListener('load', () => {
+      const canvas = texture.image
+      canvas.width = artwork.naturalWidth
+      canvas.height = artwork.naturalHeight
+      canvas.getContext('2d').drawImage(artwork, 0, 0)
+      texture.needsUpdate = true
+      redraw()
+    }, { once: true })
+    artwork.src = '/inspection-label.webp'
+  }
   item(new CylinderGeometry(.06, .055, .16, 16), steel, [radius * .42, height + .245, -.035], [0, 0, Math.PI / 2])
 
   const side = radius + (spec.horn ? .30 : .21)
@@ -296,7 +310,7 @@ export function openViewer(surface, onPart, onSpinChange) {
     set(type) {
       stopSpin()
       if (current) scene.remove(current.model)
-      if (!models.has(type)) models.set(type, buildModel(type))
+      if (!models.has(type)) models.set(type, buildModel(type, schedule))
       current = models.get(type)
       scene.add(current.model)
       align(frontAngle)

@@ -30,6 +30,11 @@ const typeButtons = document.querySelectorAll('button[data-type]')
 const partButtons = document.querySelectorAll('button[data-part]')
 const spinButton = byId('spin-model')
 const zoomButton = byId('zoom-model')
+const inspectionLabel = {
+  summary: tr('Ετικέτα ελέγχου και αναγόμωσης Star Service.', 'Star Service inspection and refill label.'),
+  description: tr('Η ετικέτα Star Service καταγράφει τους ελέγχους, τη συντήρηση και την αναγόμωση του πυροσβεστήρα.', 'The Star Service label records extinguisher inspections, servicing and refills.'),
+}
+const usesInspectionLabel = () => (byId('stage').dataset.activeModel || 'powder') === 'powder'
 let viewer
 wireDisclosures()
 setupBrandWall()
@@ -45,9 +50,10 @@ function showPart(part) {
   const label = byId('stage-part')
   const partButton = [...partButtons].find((button) => button.dataset.part === part)
   byId('stage-part-name').textContent = partButton.textContent
-  byId('stage-part-text').textContent = partSummaries[part]
+  const inspection = part === 'label' && usesInspectionLabel()
+  byId('stage-part-text').textContent = inspection ? inspectionLabel.summary : partSummaries[part]
   showPopover(label, true)
-  byId('part-description').textContent = parts[part]
+  byId('part-description').textContent = inspection ? inspectionLabel.description : parts[part]
   for (const button of partButtons) button.setAttribute('aria-pressed', String(button.dataset.part === part))
   viewer?.focus(part)
 }
@@ -73,7 +79,7 @@ for (const button of typeButtons) button.addEventListener('click', () => {
   for (const entry of typeButtons) entry.setAttribute('aria-pressed', String(entry === button))
   viewer?.set(type)
   setDisclosure(byId('parts'), false)
-  byId('part-description').textContent = parts.label
+  byId('part-description').textContent = usesInspectionLabel() ? inspectionLabel.description : parts.label
   for (const entry of partButtons) entry.setAttribute('aria-pressed', String(entry.dataset.part === 'label'))
   showPopover(byId('stage-part'), false)
 })
