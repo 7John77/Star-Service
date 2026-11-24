@@ -15,7 +15,17 @@ function createGeometry(mesh) {
   const { position, normal, uv } = geometry.attributes
   const material = mesh.material
   const color = material.color.clone().convertLinearToSRGB().toArray().map((value) => value * 255)
-  const texture = material.map?.image
+  let texture = material.map?.image
+  if (texture && texture.width > 160) {
+    // Prefilter the artwork for this renderer's 480 px viewport.
+    const sample = document.createElement('canvas')
+    sample.width = 160
+    sample.height = Math.round(texture.height * sample.width / texture.width)
+    const context = sample.getContext('2d')
+    context.imageSmoothingQuality = 'high'
+    context.drawImage(texture, 0, 0, sample.width, sample.height)
+    texture = sample
+  }
   const pixels = texture?.getContext('2d').getImageData(0, 0, texture.width, texture.height).data
   return {
     color, pixels, texture, textureVersion: material.map?.version, indices: geometry.index.array, position, normal, uv,
