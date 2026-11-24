@@ -94,10 +94,11 @@ export function setupEquipment(pickQuote) {
       source.rel = 'noopener'
       actions.append(source)
     }
-    if (category === 'mounts') {
+    const catalogueCategory = { mounts: 'accessories', cabinets: 'water', agents: 'agents', detection: 'detection', systems: 'systems' }[category]
+    if (catalogueCategory) {
       const catalogue = make('a', tr('Δείτε προϊόντα στον κατάλογο', 'View catalogue products'), 'button button-outline')
       catalogue.href = '#catalog'
-      catalogue.dataset.filterLink = 'mounts'
+      catalogue.dataset.filterLink = catalogueCategory
       catalogue.addEventListener('click', (event) => {
         event.preventDefault()
         close(() => document.getElementById('catalog').scrollIntoView({ behavior: reduce.matches ? 'instant' : 'smooth' }))
