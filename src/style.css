@@ -115,7 +115,9 @@ h3 { font-size: clamp(1.34rem, 2.4vw, 1.9rem); letter-spacing: -.038em; margin-b
 .model-surface:focus-visible { outline-offset: -4px }
 .model-surface canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; cursor: grab; touch-action: pan-y pinch-zoom; }
 .model-surface.is-dragging canvas { cursor: grabbing }
-.model-surface.is-fallback { background: url('/hero.webp') 57% center / cover no-repeat }
+.model-surface.is-preview { background: url('/extinguisher-preview.webp') center / contain no-repeat }
+.viewer-footer-copy { display: grid; gap: .18rem; }
+.viewer-label-link { color: #f7e5da; font-weight: 650; text-underline-offset: .2em; }
 .model-pin { position: absolute; translate: -50% -50%; border-radius: 50%; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border: 1px solid transparent; background: transparent; color: #fff; font: 550 1.25rem/1 "Space Grotesk", Arial, sans-serif }
 .model-pin::before { content: ""; position: absolute; inset: 5px; z-index: -1; border: 1px solid #fff3e4b5; border-radius: 50%; background: #241d1ee6; box-shadow: 0 0 0 3px #fff3e425; transition: background .18s, box-shadow .18s }
 .model-pin:hover::before, .model-pin.active::before { background: var(--red); box-shadow: 0 0 0 5px #ec756442 }

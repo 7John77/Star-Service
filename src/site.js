@@ -15,12 +15,10 @@ const types = {
   wet: ['F', tr('Υγρού χημικού', 'Wet chemical'), tr('Η σήμανση F αφορά μαγειρικά έλαια και λίπη. Ο τύπος αυτός συναντάται σε χώρους με επαγγελματικές συσκευές μαγειρέματος.', 'Class F covers cooking oils and fats. This type is found in settings with commercial cooking equipment.')],
 }
 const parts = {
-  label: tr('Η ετικέτα αναφέρει τις κατηγορίες φωτιάς και την κατασβεστική ικανότητα του συγκεκριμένου μοντέλου.', 'The label shows the model’s fire classes and rating.'),
   valve: tr('Η βαλβίδα ελέγχει τη ροή του κατασβεστικού μέσου. Τα εξαρτήματα στην κορυφή διαφέρουν ανά μοντέλο.', 'The valve controls the flow of extinguishing agent. The parts at the top vary by model.'),
   outlet: tr('Από το ακροφύσιο εξέρχεται το κατασβεστικό μέσο. Στο μοντέλο CO₂ διακρίνεται η χοάνη.', 'The nozzle releases the extinguishing agent. The CO₂ model has a visible horn.'),
 }
 const partSummaries = {
-  label: tr('Κατηγορίες φωτιάς και κατασβεστική ικανότητα.', 'Fire classes and extinguishing rating.'),
   valve: tr('Ελέγχει τη ροή του κατασβεστικού μέσου.', 'Controls the flow of extinguishing agent.'),
   outlet: tr('Κατευθύνει το κατασβεστικό μέσο.', 'Directs the extinguishing agent.'),
 }
@@ -34,7 +32,6 @@ const inspectionLabel = {
   summary: tr('Ετικέτα ελέγχου και αναγόμωσης Star Service.', 'Star Service inspection and refill label.'),
   description: tr('Η ετικέτα Star Service καταγράφει τους ελέγχους, τη συντήρηση και την αναγόμωση του πυροσβεστήρα.', 'The Star Service label records extinguisher inspections, servicing and refills.'),
 }
-const usesInspectionLabel = () => (byId('stage').dataset.activeModel || 'powder') === 'powder'
 let viewer
 wireDisclosures()
 setupBrandWall()
@@ -50,7 +47,7 @@ function showPart(part) {
   const label = byId('stage-part')
   const partButton = [...partButtons].find((button) => button.dataset.part === part)
   byId('stage-part-name').textContent = partButton.textContent
-  const inspection = part === 'label' && usesInspectionLabel()
+  const inspection = part === 'label'
   byId('stage-part-text').textContent = inspection ? inspectionLabel.summary : partSummaries[part]
   showPopover(label, true)
   byId('part-description').textContent = inspection ? inspectionLabel.description : parts[part]
@@ -61,8 +58,8 @@ function showPart(part) {
 function fallback() {
   viewer = undefined
   surface.replaceChildren()
-  surface.classList.add('is-fallback')
-  byId('viewer-mode').textContent = tr('Ενδεικτική φωτογραφία', 'Illustrative photograph')
+  surface.classList.add('is-preview')
+  byId('viewer-mode').textContent = tr('Προεπισκόπηση μοντέλου', 'Model preview')
   byId('viewer-hint').textContent = tr('Επιλέξτε τύπο για τα χαρακτηριστικά του', 'Choose a type to see its features')
   document.querySelector('.rotate-controls').hidden = true
 }
@@ -79,7 +76,7 @@ for (const button of typeButtons) button.addEventListener('click', () => {
   for (const entry of typeButtons) entry.setAttribute('aria-pressed', String(entry === button))
   viewer?.set(type)
   setDisclosure(byId('parts'), false)
-  byId('part-description').textContent = usesInspectionLabel() ? inspectionLabel.description : parts.label
+  byId('part-description').textContent = inspectionLabel.description
   for (const entry of partButtons) entry.setAttribute('aria-pressed', String(entry.dataset.part === 'label'))
   showPopover(byId('stage-part'), false)
 })
@@ -112,16 +109,16 @@ byId('parts').addEventListener('toggle', (event) => {
   if (!event.target.open) showPopover(byId('stage-part'), false)
 })
 surface.addEventListener('viewerunavailable', fallback)
-try {
-  viewer = openViewer(surface, showPart, (spinning) => {
+const artwork = new Image()
+artwork.src = '/inspection-label.webp'
+artwork.decode().then(() => {
+  viewer = openViewer(surface, artwork, showPart, (spinning) => {
     spinButton.setAttribute('aria-pressed', String(spinning))
     byId('spin-label').textContent = spinning ? tr('Παύση', 'Pause') : '360°'
   })
-  viewer.set('powder')
+  viewer.set(byId('stage').dataset.activeModel)
   document.querySelector('.rotate-controls').hidden = false
-} catch {
-  fallback()
-}
+}).catch(fallback)
 
 const menu = document.querySelector('.menu-toggle')
 const nav = byId('nav')

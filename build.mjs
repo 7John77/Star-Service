@@ -1,4 +1,5 @@
 import { build } from 'esbuild'
+import { createHash } from 'node:crypto'
 import { dirname } from 'node:path'
 import { mkdir, readdir, readFile, writeFile, copyFile } from 'node:fs/promises'
 
@@ -17,13 +18,19 @@ const assets = {
   '/star-service-logo-dark.svg': ['star-service-logo-dark.svg', 'image/svg+xml'],
   '/star-service-icon.svg': ['star-service-icon.svg', 'image/svg+xml'],
   '/star-service-icon.png': ['star-service-icon.png', 'image/png'],
+  '/extinguisher-preview.webp': ['extinguisher-preview.webp', 'image/webp'],
   '/inspection-label.webp': ['inspection-label.webp', 'image/webp'],
   '/hero.webp': ['hero.webp', 'image/webp'],
 }
 for (const file of await readdir('src/legacy')) {
   if (file.endsWith('.webp')) assets['/legacy/' + file] = ['legacy/' + file, 'image/webp']
 }
-const template = await readFile('src/index.html', 'utf8')
+const bundle = await build({ entryPoints: ['src/site.js'], bundle: true, write: false, format: 'esm', minify: true })
+const siteScript = bundle.outputFiles[0].text
+const sitePath = '/site-' + createHash('sha256').update(siteScript).digest('hex').slice(0, 12) + '.js'
+const stylesheet = await readFile('src/style.css', 'utf8')
+const stylePath = '/style-' + createHash('sha256').update(stylesheet).digest('hex').slice(0, 12) + '.css'
+const template = (await readFile('src/index.html', 'utf8')).replace('/site.js', sitePath).replace('/style.css', stylePath)
 function page(english) {
   return {
     body: template.replace(/\[\[([^|]*?)\|([^]*?)\]\]/g, (_, greek, en) => english ? en : greek),
@@ -35,8 +42,8 @@ for (const [path, [name, type]] of Object.entries(assets)) {
   const data = await readFile('src/' + name)
   embedded[path] = { body: data.toString(/^(image|font)\//.test(type) ? 'base64' : 'utf8'), type }
 }
-const bundle = await build({ entryPoints: ['src/site.js'], bundle: true, write: false, format: 'esm', minify: true })
-embedded['/site.js'] = { body: bundle.outputFiles[0].text, type: 'text/javascript; charset=utf-8' }
+embedded[stylePath] = { body: stylesheet, type: 'text/css; charset=utf-8' }
+embedded[sitePath] = embedded['/site.js'] = { body: siteScript, type: 'text/javascript; charset=utf-8' }
 const admin = await build({ entryPoints: ['src/admin.js'], bundle: true, write: false, format: 'esm', minify: true })
 embedded['/admin/'] = { body: await readFile('src/admin.html', 'utf8'), type: 'text/html; charset=utf-8' }
 embedded['/admin.js'] = { body: admin.outputFiles[0].text, type: 'text/javascript; charset=utf-8' }

@@ -9,52 +9,28 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { createSoftwareRenderer } from './software-viewer.js'
 
 const specs = {
-  powder: { radius: .51, height: 2.33, stripe: '#233a53', stamp: 'ABC', name: 'DRY POWDER' },
-  co2: { radius: .40, height: 2.49, stripe: '#17191c', stamp: 'CO₂', name: 'CARBON DIOXIDE', horn: true },
-  foam: { radius: .54, height: 2.45, stripe: '#b58a55', stamp: 'AB', name: 'FOAM' },
-  wet: { radius: .48, height: 2.45, stripe: '#b68d1a', stamp: 'F', name: 'WET CHEMICAL', wand: true },
+  powder: { radius: .51, height: 2.33 },
+  co2: { radius: .40, height: 2.49, horn: true },
+  foam: { radius: .54, height: 2.45 },
+  wet: { radius: .48, height: 2.45, wand: true },
 }
 
 function material(color, roughness, metalness = 0) {
   return new MeshStandardMaterial({ color, roughness, metalness })
 }
 
-function labelTexture(spec) {
+function labelTexture(artwork) {
   const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 624
-  const ctx = canvas.getContext('2d')
-  ctx.fillStyle = '#f4efe4'
-  ctx.fillRect(0, 0, 512, 624)
-  ctx.fillStyle = spec.stripe
-  ctx.fillRect(0, 0, 512, 38)
-  ctx.fillRect(0, 540, 512, 84)
-  ctx.fillStyle = '#bd291e'
-  ctx.beginPath()
-  for (const [index, [x, y]] of [[62,66],[72,103],[110,114],[72,125],[62,164],[52,125],[14,114],[52,103]].entries()) {
-    if (index === 0) ctx.moveTo(x + 17, y)
-    else ctx.lineTo(x + 17, y)
-  }
-  ctx.closePath()
-  ctx.fill()
-  ctx.fillStyle = '#232323'
-  ctx.font = '700 53px Arial'
-  ctx.fillText('Star Service', 141, 130)
-  ctx.font = '800 130px Arial'
-  ctx.fillText(spec.stamp, 38, 304)
-  ctx.font = '700 32px Arial'
-  ctx.fillText(spec.name, 42, 365)
-  ctx.fillStyle = '#9a9489'
-  ctx.fillRect(42, 413, 422, 2)
-  ctx.font = '600 24px Arial'
-  ctx.fillText('ILLUSTRATIVE MODEL', 42, 486)
+  canvas.width = artwork.naturalWidth
+  canvas.height = artwork.naturalHeight
+  canvas.getContext('2d').drawImage(artwork, 0, 0)
   const texture = new CanvasTexture(canvas)
   texture.colorSpace = SRGBColorSpace
   texture.anisotropy = 8
   return texture
 }
 
-function buildModel(type, redraw) {
+function buildModel(type, texture) {
   const spec = specs[type]
   const { radius, height } = spec
   const model = new Group()
@@ -93,24 +69,11 @@ function buildModel(type, redraw) {
     item(new BoxGeometry(.08, .013, .006), matte, [0, height + .205, .179], [0, 0, .62])
   }
 
-  const texture = labelTexture(spec)
   const label = new MeshStandardMaterial({ map: texture, roughness: .76 })
   const labelRadius = radius + .006
-  const labelArc = type === 'powder' ? 1.7 : 1.64
-  const labelHeight = type === 'powder' ? labelRadius * labelArc * (110 / 80) : .86
+  const labelHeight = 1.24
+  const labelArc = labelHeight * texture.image.width / texture.image.height / labelRadius
   item(new CylinderGeometry(labelRadius, labelRadius, labelHeight, 48, 1, true, -labelArc / 2, labelArc), label, [0, 1.23, 0])
-  if (type === 'powder') {
-    const artwork = new Image()
-    artwork.addEventListener('load', () => {
-      const canvas = texture.image
-      canvas.width = artwork.naturalWidth
-      canvas.height = artwork.naturalHeight
-      canvas.getContext('2d').drawImage(artwork, 0, 0)
-      texture.needsUpdate = true
-      redraw()
-    }, { once: true })
-    artwork.src = '/inspection-label.webp'
-  }
   item(new CylinderGeometry(.06, .055, .16, 16), steel, [radius * .42, height + .245, -.035], [0, 0, Math.PI / 2])
 
   const side = radius + (spec.horn ? .30 : .21)
@@ -143,14 +106,22 @@ function buildModel(type, redraw) {
   return { model, anchors }
 }
 
-export function openViewer(surface, onPart, onSpinChange) {
+export function openViewer(surface, artwork, onPart, onSpinChange) {
+  const texture = labelTexture(artwork)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
   const options = { alpha: true, antialias: true }
-  const canvas = document.createElement('canvas')
-  const context = canvas.getContext('webgl2', options)
-  const renderer = context
-    ? new WebGLRenderer({ ...options, canvas, context })
-    : createSoftwareRenderer(canvas)
+  let canvas = document.createElement('canvas')
+  let context = canvas.getContext('webgl2', options)
+  let renderer
+  if (context) {
+    try {
+      renderer = new WebGLRenderer({ ...options, canvas, context })
+    } catch {
+      context = null
+      canvas = document.createElement('canvas')
+    }
+  }
+  renderer ||= createSoftwareRenderer(canvas)
   renderer.domElement.setAttribute('aria-hidden', 'true')
   surface.append(renderer.domElement)
 
@@ -194,7 +165,7 @@ export function openViewer(surface, onPart, onSpinChange) {
     pins[part] = pin
   }
 
-  const frontAngle = -.25
+  const frontAngle = -.12
   const fullTurn = Math.PI * 2
   let current, spin
   let target = frontAngle, rotation = -.95
@@ -236,6 +207,7 @@ export function openViewer(surface, onPart, onSpinChange) {
     current.model.rotation.y = rotation
     current.model.updateMatrixWorld()
     renderer.render(scene, camera)
+    surface.classList.remove('is-preview')
     for (const [part, pin] of pinEntries) {
       projected.copy(current.anchors[part])
       current.model.localToWorld(projected)
@@ -310,7 +282,7 @@ export function openViewer(surface, onPart, onSpinChange) {
     set(type) {
       stopSpin()
       if (current) scene.remove(current.model)
-      if (!models.has(type)) models.set(type, buildModel(type, schedule))
+      if (!models.has(type)) models.set(type, buildModel(type, texture))
       current = models.get(type)
       scene.add(current.model)
       align(frontAngle)
