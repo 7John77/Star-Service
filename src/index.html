@@ -4,8 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f4f1ec">
-  <meta name="description" content="[[Πυροσβεστήρες, πυρανίχνευση, συντήρηση και αναγόμωση στα Διαβατά Θεσσαλονίκης.|Fire extinguishers, detection systems, maintenance and refills in Diavata, Thessaloniki.]]">
-  <title>Star Service · [[Πυροσβεστικά είδη και πυροπροστασία|Fire safety equipment and protection]]</title>
+  <meta name="description" content="[[Πυροσβεστικά είδη, πυρανίχνευση και τεχνική υποστήριξη. Εξοπλισμός φροντίδας, κινητικότητας και καθημερινής υποστήριξης στα Διαβατά Θεσσαλονίκης.|Fire safety equipment, detection and servicing. Care, mobility and daily living equipment in Diavata, Thessaloniki.]]">
+  <title>Star Service · [[Πυροσβεστικά είδη · Φροντίδα &amp; υποστήριξη|Fire safety equipment · Care &amp; support]]</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Star Service">
+  <meta property="og:title" content="Star Service · [[Πυροσβεστικά είδη · Φροντίδα &amp; υποστήριξη|Fire safety equipment · Care &amp; support]]">
+  <meta property="og:description" content="[[Πυροσβεστήρες και πυρανίχνευση. Αναπηρικά αμαξίδια, βοηθήματα βάδισης και εξοπλισμός καθημερινής φροντίδας.|Extinguishers and fire detection. Wheelchairs, walking aids and daily care equipment.]]">
+  <meta property="og:url" content="https://starservicefire.com[[/|/en/]]">
+  <meta property="og:image" content="https://starservicefire.com/overview-[[el|en]].jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="[[Πυροσβεστικά είδη και εξοπλισμός φροντίδας Star Service|Star Service fire safety and care equipment]]">
+  <meta property="og:locale" content="[[el_GR|en_GB]]">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="alternate" hreflang="el" href="/">
   <link rel="alternate" hreflang="en" href="/en/">
   <link rel="icon" type="image/svg+xml" href="/star-service-icon.svg">
@@ -15,9 +26,27 @@
   <script type="module" src="/site.js"></script>
 </head>
 <body>
+  <dialog id="department-entry" class="department-entry" aria-labelledby="entry-title">
+    <div class="entry-content">
+      <img class="entry-brand" src="/star-service-logo-dark.svg" alt="Star Service" width="251" height="53">
+      <h2 id="entry-title">[[Τι εξοπλισμό αναζητάτε;|What equipment are you looking for?]]</h2>
+      <div class="entry-options">
+        <button class="entry-choice entry-fire" type="button" data-entry="fire">
+          <img src="/entry-fire.webp" alt="" width="177" height="390" decoding="async">
+          <span><strong>[[Πυροπροστασία|Fire protection]]</strong><small>[[Πυροσβεστικά είδη, πυρανίχνευση και συντήρηση.|Fire safety equipment, detection and servicing.]]</small></span>
+          <b aria-hidden="true">↗</b>
+        </button>
+        <button class="entry-choice entry-care" type="button" data-entry="care">
+          <img src="/entry-care.webp" alt="" width="360" height="390" decoding="async">
+          <span><strong>[[Φροντίδα &amp; υποστήριξη|Care &amp; support]]</strong><small>[[Αμαξίδια, βοηθήματα βάδισης και εξοπλισμός φροντίδας.|Wheelchairs, walking aids and care equipment.]]</small></span>
+          <b aria-hidden="true">↗</b>
+        </button>
+      </div>
+    </div>
+  </dialog>
   <a class="skip" href="#main">[[Μετάβαση στο περιεχόμενο|Skip to content]]</a>
   <header class="header"><div class="shell header-inner">
-    <a class="brand" href="[[/|/en/]]" aria-label="Star Service"><img src="/star-service-logo.svg" alt="Star Service" width="251" height="53"></a>
+    <a class="brand" href="[[/|/en/]]" aria-label="Star Service"><img src="/star-service-logo.svg" data-brand-image alt="Star Service" width="251" height="53"></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="[[Μενού|Menu]]"><span aria-hidden="true"></span></button>
     <nav id="nav" aria-label="[[Κύρια πλοήγηση|Main navigation]]">
       <a href="#catalog">[[Κατάλογος|Catalogue]]</a><a href="#care" data-department="care">[[Φροντίδα|Care]]</a><a href="#services">[[Υπηρεσίες|Services]]</a><a href="#clients">[[Πελατολόγιο|Clients]]</a><a href="#contact">[[Επικοινωνία|Contact]]</a>
@@ -37,14 +66,14 @@
   </div></div>
   <main id="main">
         <div class="catalog-departments home-departments shell" id="care" role="group" aria-label="[[Τμήματα καταλόγου|Catalogue departments]]">
-          <button type="button" data-department="fire" aria-controls="stage services catalog" aria-pressed="true"><img src="/legacy/extinguishers.webp" alt="" width="64" height="64"><span>[[Πυροπροστασία|Fire protection]]<small id="count-fire"></small></span><b aria-hidden="true">↗</b></button>
-          <button type="button" data-department="care" aria-controls="stage services catalog" aria-pressed="false"><img src="/care-cover.webp" alt="" width="64" height="64"><span>[[Φροντίδα &amp; υποστήριξη|Care &amp; daily living]]<small id="count-care"></small></span><b aria-hidden="true">↗</b></button>
+          <button type="button" data-department="fire" aria-controls="stage services catalog" aria-pressed="true"><img src="/legacy/extinguishers.webp" alt="" width="64" height="64"><span>[[Πυροπροστασία|Fire protection]]<small>%FIRE_COUNT% [[καταχωρίσεις|listings]]</small></span><b aria-hidden="true">↗</b></button>
+          <button type="button" data-department="care" aria-controls="stage services catalog" aria-pressed="false"><img src="/care-cover.webp" alt="" width="64" height="64"><span>[[Φροντίδα &amp; υποστήριξη|Care &amp; daily living]]<small>%CARE_COUNT% [[καταχωρίσεις|listings]]</small></span><b aria-hidden="true">↗</b></button>
         </div>
     <section class="hero shell" id="extinguishers" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow" data-when="fire"><span class="short-line" aria-hidden="true"></span>[[ΕΞΟΠΛΙΣΜΟΣ ΠΥΡΟΠΡΟΣΤΑΣΙΑΣ|FIRE SAFETY EQUIPMENT]]</p>
         <p class="eyebrow" data-when="care" hidden><span class="short-line" aria-hidden="true"></span>[[ΚΙΝΗΤΙΚΟΤΗΤΑ ΚΑΙ ΚΑΘΗΜΕΡΙΝΗ ΦΡΟΝΤΙΔΑ|MOBILITY AND DAILY LIVING]]</p>
-        <h1 id="hero-title">Star <em>Service</em></h1>
+        <h1 id="hero-title" tabindex="-1">Star <em>Service</em></h1>
         <p class="hero-title" data-when="fire">[[Πυροσβεστικά είδη|Fire safety equipment]] <span class="hero-title-secondary">[[και τεχνική υποστήριξη.|and technical support.]]</span></p>
         <p class="hero-description" data-when="fire">[[Πυροσβεστήρες, εξοπλισμός πυρανίχνευσης, συντήρηση και αναγόμωση για τον χώρο σας.|Fire extinguishers, detection equipment, servicing and refills for your premises.]]</p>
         <p class="hero-title" data-when="care" hidden>[[Φροντίδα &amp; υποστήριξη|Care &amp; support]] <span class="hero-title-secondary">[[για την καθημερινότητα.|for everyday life.]]</span></p>
@@ -351,7 +380,7 @@
   </dialog>
   <footer>
     <div class="shell footer-inner">
-    <a class="brand" href="[[/|/en/]]"><img src="/star-service-logo-dark.svg" alt="Star Service" width="251" height="53"></a>
+    <a class="brand" href="[[/|/en/]]"><img src="/star-service-logo-dark.svg" data-brand-image data-brand-dark alt="Star Service" width="251" height="53"></a>
     <p>[[Πυροσβεστικά είδη στα Διαβατά από το 1985|Fire safety equipment in Diavata since 1985]]</p>
     <div class="footer-tools"><button type="button" id="wall-toggle" aria-pressed="false">[[Παύση φόντου|Pause background]]</button></div>
   </div></footer>

@@ -3,19 +3,6 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
-  "images": {
-    "sizes": [160, 384, 768],
-    "qualities": [75],
-    "remotePatterns": [
-      {
-        "protocol": "https",
-        "hostname": "mobiakcare.com",
-        "pathname": "/sites/default/files/**"
-      }
-    ],
-    "minimumCacheTTL": 86400,
-    "formats": ["image/webp"]
-  },
   "rewrites": [
     {
       "source": "/api/studies",

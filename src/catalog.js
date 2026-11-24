@@ -1,5 +1,7 @@
 import { english, make, tr } from './locale.js'
 import { categories, careCategories, isCareCategory, normalize, productKey } from './catalogue-fields.js'
+import carePreviews from './care-previews.json'
+import extraSpecs from './catalogue-extra-specs.json'
 
 const categoryMap = new Map(categories.map(([key, el, en]) => [key, tr(el, en)]))
 const sections = [
@@ -30,10 +32,6 @@ const coverBySection = {
   extinguishers: 'extinguishers', accessories: 'mounts', water: 'cabinets',
   detection: 'detection', agents: 'agents', barriers: 'doors', systems: 'systems',
 }
-const remoteCareImage = 'https://mobiakcare.com/sites/default/files/'
-const imageSize = (url, width) => url.startsWith(remoteCareImage) && location.protocol === 'https:' && location.hostname !== 'localhost'
-  ? '/_vercel/image?url=' + encodeURIComponent(url) + '&w=' + width + '&q=75'
-  : url
 const representativePhoto = tr('Ενδεικτική εικόνα κατηγορίας', 'Representative category image')
 
 export async function setupCatalogue(pickQuote, initialDepartment) {
@@ -57,12 +55,14 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   let department = initialDepartment
   const pending = { fire: true, care: true }
   const failed = { fire: false, care: false }
+  const requested = new Set()
   const belongs = (product) => isCareCategory(product.category) === (department === 'care')
 
   function chooseDepartment(key) {
     department = key
     buildFilters()
     chooseSection('all', 'all', true)
+    ensureCatalogue(key)
   }
 
   function chooseSection(value, subtype = 'all', clearSearch = false) {
@@ -112,7 +112,11 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   }
 
   function setImage(image, candidates, width, cover, note, illustrative = false) {
-    const sources = [...new Set(candidates.filter(Boolean).flatMap(url => [imageSize(url, width), url]))]
+    const sources = [...new Set(candidates.filter(Boolean).flatMap(url => {
+      const preview = carePreviews[url]
+      if (!preview) return [url]
+      return width <= 384 ? [preview, url] : [url, preview]
+    }))]
     if (cover) sources.push(cover)
     sources.push('/star-service-icon.svg')
     let index = 0
@@ -186,14 +190,20 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     const price = make('p', '', 'product-price')
     showPrice(price, product)
     detail.append(price)
-    if (product.code) detail.append(make('p', tr('Κωδικός', 'Code') + ' · ' + product.code, 'product-code'))
+    const meta = make('div', '', 'product-detail-meta')
+    meta.append(make('p', categoryMap.get(product.category)))
+    if (product.code) meta.append(make('p', tr('Κωδικός', 'Code') + ' · ' + product.code, 'product-code'))
+    if (product.family) meta.append(make('p', tr(product.familyEl, product.familyEn)))
+    detail.append(meta)
+    const information = make('section', '', 'product-detail-facts')
+    information.append(make('h3', tr('Χαρακτηριστικά προϊόντος', 'Product specifications')))
     if (product.features?.length) {
       const features = make('ul', '', 'product-features')
       for (const [el, en] of product.features) features.append(make('li', tr(el, en)))
-      detail.append(features)
+      information.append(features)
     }
-    const facts = product.specs || []
-    if (product.capacity) detail.append(make('p', product.capacity, 'product-capacity'))
+    const facts = product.specs?.length ? product.specs : extraSpecs[product.path || product.code || product.title] || []
+    if (product.capacity) information.append(make('p', product.capacity, 'product-capacity'))
     if (facts.length) {
       const list = make('dl', '', 'product-specs')
       for (const [label, labelEnglish, value, valueEnglish] of facts) {
@@ -201,8 +211,9 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
         row.append(make('dt', tr(label, labelEnglish)), make('dd', tr(value, valueEnglish)))
         list.append(row)
       }
-      detail.append(list)
+      information.append(list)
     }
+    if (information.children.length > 1) detail.append(information)
     const actions = make('div', '', 'product-actions')
     const quote = make('button', tr('Προσφορά για αυτό το είδος', 'Request a quote for this item'), 'button button-red')
     quote.type = 'button'
@@ -242,14 +253,18 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     const label = product.isFeatured ? tr('Επιλεγμένο είδος', 'Featured item') : categoryMap.get(product.category)
     copy.append(make('small', label), make('strong', productTitle(product)))
     button.classList.toggle('featured', product.isFeatured)
-    if (product.code || product.capacity) copy.append(make('span', product.code || product.capacity))
+    if (product.code || product.capacity) copy.append(make('span', product.code || product.capacity, 'product-code'))
     const price = make('strong', '', 'product-price')
     showPrice(price, product)
     button.priceProduct = product
     copy.append(price)
     copy.append(photoNote)
-    button.append(image, copy, make('span', '+', 'product-plus'))
-    button.lastElementChild.setAttribute('aria-hidden', 'true')
+    const view = make('span', tr('Δείτε λεπτομέρειες', 'View details'), 'product-cta')
+    const arrow = make('b', '↗')
+    arrow.setAttribute('aria-hidden', 'true')
+    view.append(arrow)
+    copy.append(view)
+    button.append(image, copy)
     button.addEventListener('click', () => openProduct(product))
     return button
   }
@@ -322,9 +337,15 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   dialog.querySelector('.dialog-close').addEventListener('click', () => close())
   dialog.addEventListener('cancel', (event) => { event.preventDefault(); close() })
   dialog.addEventListener('click', (event) => { if (event.target === dialog) close() })
+  function ensureCatalogue(key) {
+    if (requested.has(key)) return
+    requested.add(key)
+    return load(key, key === 'fire' ? '/catalogue.json' : '/care-catalogue.json')
+  }
+
   async function load(key, path) {
     try {
-      const response = await fetch(path, { priority: key === department ? 'high' : 'low' })
+      const response = await fetch(path)
       if (!response.ok) throw new Error('Catalogue unavailable')
       const data = (await response.json()).map(product => ({
         ...product,
@@ -334,8 +355,6 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
         searchKey: normalize([product.title, product.en, product.capacity, product.code, product.sku, product.familyEl, product.familyEn].filter(Boolean).join(' ')),
       }))
       items.push(...data.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured)))
-      const count = new Intl.NumberFormat(english ? 'en' : 'el').format(data.length)
-      document.getElementById('count-' + key).textContent = count + tr(' καταχωρίσεις', ' listings')
     } catch {
       failed[key] = true
     } finally {
@@ -354,5 +373,4 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     for (const button of grid.children) showPrice(button.querySelector('.product-price'), button.priceProduct)
     if (dialog.open && openedProduct) showPrice(detail.querySelector('.product-price'), openedProduct)
   }).catch(() => {})
-  await Promise.all([load('fire', '/catalogue.json'), load('care', '/care-catalogue.json')])
 }

@@ -19,6 +19,12 @@ const assets = {
   '/space-grotesk-latin.woff2': ['space-grotesk-latin.woff2', 'font/woff2'],
   '/star-service-logo.svg': ['star-service-logo.svg', 'image/svg+xml'],
   '/star-service-logo-dark.svg': ['star-service-logo-dark.svg', 'image/svg+xml'],
+  '/star-service-logo-care.svg': ['star-service-logo-care.svg', 'image/svg+xml'],
+  '/star-service-logo-care-dark.svg': ['star-service-logo-care-dark.svg', 'image/svg+xml'],
+  '/entry-fire.webp': ['entry-fire.webp', 'image/webp'],
+  '/entry-care.webp': ['entry-care.webp', 'image/webp'],
+  '/overview-el.jpg': ['overview-el.jpg', 'image/jpeg'],
+  '/overview-en.jpg': ['overview-en.jpg', 'image/jpeg'],
   '/star-service-icon.svg': ['star-service-icon.svg', 'image/svg+xml'],
   '/star-service-icon.png': ['star-service-icon.png', 'image/png'],
   '/extinguisher-preview-hd.webp': ['extinguisher-preview-hd.webp', 'image/webp'],
@@ -34,9 +40,12 @@ const sitePath = '/site-' + createHash('sha256').update(siteScript).digest('hex'
 const stylesheet = await readFile('src/style.css', 'utf8')
 const stylePath = '/style-' + createHash('sha256').update(stylesheet).digest('hex').slice(0, 12) + '.css'
 const template = (await readFile('src/index.html', 'utf8')).replace('/site.js', sitePath).replace('/style.css', stylePath)
+const counts = await Promise.all(['catalogue.json', 'care-catalogue.json'].map(async file => JSON.parse(await readFile('src/' + file, 'utf8')).length))
 function page(english) {
+  const listings = new Intl.NumberFormat(english ? 'en' : 'el')
   return {
-    body: template.replace(/\[\[([^|]*?)\|([^]*?)\]\]/g, (_, greek, en) => english ? en : greek),
+    body: template.replace(/\[\[([^|]*?)\|([^]*?)\]\]/g, (_, greek, en) => english ? en : greek)
+      .replace('%FIRE_COUNT%', listings.format(counts[0])).replace('%CARE_COUNT%', listings.format(counts[1])),
     type: 'text/html; charset=utf-8',
   }
 }

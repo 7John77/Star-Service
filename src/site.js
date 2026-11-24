@@ -46,7 +46,13 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)')
 const stage = byId('stage')
 const controls = stage.querySelector('.rotate-controls')
 const heroQuote = document.querySelector('.hero-copy .button-red')
-let department = location.hash === '#care' ? 'care' : 'fire'
+const entry = byId('department-entry')
+const departmentStorageKey = 'star-service-department'
+const brandImages = [...document.querySelectorAll('[data-brand-image]')]
+const themeColor = document.querySelector('meta[name="theme-color"]')
+let savedDepartment
+try { savedDepartment = sessionStorage.getItem(departmentStorageKey) } catch {}
+let department = location.hash === '#care' || (location.hash !== '#fire' && savedDepartment === 'care') ? 'care' : 'fire'
 let fireType = 'powder'
 let viewer
 let viewerFailed = false
@@ -151,6 +157,10 @@ function showDepartment(next, initial = false) {
   department = next
   const care = next === 'care'
   document.documentElement.dataset.department = next
+  for (const image of brandImages) {
+    image.src = '/star-service-logo' + (care ? '-care' : '') + (image.hasAttribute('data-brand-dark') ? '-dark' : '') + '.svg'
+  }
+  themeColor.content = care ? '#edf6f7' : '#f4f1ec'
   for (const panel of departmentContent) panel.hidden = panel.dataset.when !== next
   for (const button of departmentButtons) button.setAttribute('aria-pressed', String(button.dataset.department === next))
   const model = care ? 'wheelchair' : fireType
@@ -175,11 +185,33 @@ function showDepartment(next, initial = false) {
   if (!initial) document.dispatchEvent(new CustomEvent('cataloguedepartment', { detail: next }))
 }
 
+function rememberDepartment(next) {
+  try { sessionStorage.setItem(departmentStorageKey, next) } catch {}
+}
+
+function enterDepartment(next) {
+  rememberDepartment(next)
+  showDepartment(next)
+  history.replaceState(null, '', location.pathname + location.search + (next === 'care' ? '#care' : ''))
+  entry.close()
+  window.scrollTo({ top: 0, behavior: 'instant' })
+  byId('hero-title').focus({ preventScroll: true })
+}
+
+for (const button of entry.querySelectorAll('[data-entry]')) {
+  button.addEventListener('click', () => enterDepartment(button.dataset.entry))
+}
+entry.addEventListener('cancel', (event) => {
+  event.preventDefault()
+  enterDepartment('fire')
+})
+
 document.addEventListener('click', (event) => {
   const control = event.target.closest('[data-department]')
   const filter = event.target.closest('[data-filter-link]')
   if (control) {
     const next = control.dataset.department
+    rememberDepartment(next)
     showDepartment(next)
     if (control.tagName === 'BUTTON' && (location.hash === '#care' || location.hash === '#fire' || !location.hash)) {
       history.replaceState(null, '', next === 'care' ? '#care' : location.pathname + location.search)
@@ -190,11 +222,13 @@ document.addEventListener('click', (event) => {
 })
 window.addEventListener('hashchange', () => {
   if (location.hash === '#care') showDepartment('care')
+  if (location.hash === '#fire') showDepartment('fire')
 })
 heroQuote.addEventListener('click', () => {
   if (department === 'care') pickQuote('Είδη φροντίδας')
 })
 showDepartment(department, true)
+if (!savedDepartment && !location.hash) entry.showModal()
 
 surface.addEventListener('viewerunavailable', fallback)
 const artwork = new Image()
