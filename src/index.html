@@ -36,12 +36,19 @@
     <div class="wall-row"><div class="wall-track"><div class="wall-strip"><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span></div><div class="wall-strip"><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span><span>Star Service <b>✦</b></span></div></div></div>
   </div></div>
   <main id="main">
+        <div class="catalog-departments home-departments shell" id="care" role="group" aria-label="[[Τμήματα καταλόγου|Catalogue departments]]">
+          <button type="button" data-department="fire" aria-controls="stage services catalog" aria-pressed="true"><img src="/legacy/extinguishers.webp" alt="" width="64" height="64"><span>[[Πυροπροστασία|Fire protection]]<small id="count-fire"></small></span><b aria-hidden="true">↗</b></button>
+          <button type="button" data-department="care" aria-controls="stage services catalog" aria-pressed="false"><img src="/care-cover.webp" alt="" width="64" height="64"><span>[[Φροντίδα &amp; υποστήριξη|Care &amp; daily living]]<small id="count-care"></small></span><b aria-hidden="true">↗</b></button>
+        </div>
     <section class="hero shell" id="extinguishers" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="short-line" aria-hidden="true"></span>[[ΕΞΟΠΛΙΣΜΟΣ ΠΥΡΟΠΡΟΣΤΑΣΙΑΣ|FIRE SAFETY EQUIPMENT]]</p>
+        <p class="eyebrow" data-when="fire"><span class="short-line" aria-hidden="true"></span>[[ΕΞΟΠΛΙΣΜΟΣ ΠΥΡΟΠΡΟΣΤΑΣΙΑΣ|FIRE SAFETY EQUIPMENT]]</p>
+        <p class="eyebrow" data-when="care" hidden><span class="short-line" aria-hidden="true"></span>[[ΚΙΝΗΤΙΚΟΤΗΤΑ ΚΑΙ ΚΑΘΗΜΕΡΙΝΗ ΦΡΟΝΤΙΔΑ|MOBILITY AND DAILY LIVING]]</p>
         <h1 id="hero-title">Star <em>Service</em></h1>
-        <p class="hero-title">[[Πυροσβεστικά είδη|Fire safety equipment]] <span class="hero-title-secondary">[[και τεχνική υποστήριξη.|and technical support.]]</span></p>
-        <p class="hero-description">[[Πυροσβεστήρες, εξοπλισμός πυρανίχνευσης, συντήρηση και αναγόμωση για τον χώρο σας.|Fire extinguishers, detection equipment, servicing and refills for your premises.]]</p>
+        <p class="hero-title" data-when="fire">[[Πυροσβεστικά είδη|Fire safety equipment]] <span class="hero-title-secondary">[[και τεχνική υποστήριξη.|and technical support.]]</span></p>
+        <p class="hero-description" data-when="fire">[[Πυροσβεστήρες, εξοπλισμός πυρανίχνευσης, συντήρηση και αναγόμωση για τον χώρο σας.|Fire extinguishers, detection equipment, servicing and refills for your premises.]]</p>
+        <p class="hero-title" data-when="care" hidden>[[Φροντίδα &amp; υποστήριξη|Care &amp; support]] <span class="hero-title-secondary">[[για την καθημερινότητα.|for everyday life.]]</span></p>
+        <p class="hero-description" data-when="care" hidden>[[Αναπηρικά αμαξίδια, βοηθήματα βάδισης και εξοπλισμός για το σπίτι και τον χώρο φροντίδας.|Wheelchairs, walking aids and equipment for the home and care settings.]]</p>
         <div class="actions"><a class="button button-red" href="#study">[[Ζητήστε προσφορά|Request a quote]]</a><a class="button button-outline" href="#catalog">[[Δείτε τον κατάλογο|Browse equipment]]</a></div>
       </div>
       <div class="showroom">
@@ -52,7 +59,7 @@
           <div id="model-surface" class="model-surface is-preview" role="group" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight" aria-label="[[Μοντέλο πυροσβεστήρα|Fire extinguisher model]]"></div>
           <p class="stage-part" id="stage-part" role="status" hidden><strong id="stage-part-name"></strong><span id="stage-part-text"></span></p>
           <div class="stage-footer">
-            <span class="viewer-footer-copy"><span id="viewer-hint">[[Σύρετε για περιστροφή|Drag to rotate]]</span><a class="viewer-label-link" href="/inspection-label.webp" target="_blank" rel="noopener">[[Δείτε την ετικέτα|View the label]]</a></span>
+            <span class="viewer-footer-copy"><span id="viewer-hint">[[Σύρετε για περιστροφή|Drag to rotate]]</span><a data-when="fire" class="viewer-label-link" href="/inspection-label.webp" target="_blank" rel="noopener">[[Δείτε την ετικέτα|View the label]]</a></span>
             <div class="rotate-controls" role="group" aria-label="[[Χειριστήρια τρισδιάστατου μοντέλου|3D model controls]]" hidden>
               <button id="spin-model" type="button" aria-label="[[Αυτόματη περιστροφή 360 μοιρών|Automatic 360-degree rotation]]" aria-pressed="false"><span aria-hidden="true">↻</span><span id="spin-label">360°</span></button>
               <button id="zoom-model" type="button" aria-label="[[Μεγέθυνση μοντέλου|Zoom model]]" aria-pressed="false"><span class="zoom-icon" aria-hidden="true"></span><span id="zoom-label">Zoom</span></button>
@@ -60,13 +67,13 @@
             </div>
           </div>
         </div>
-        <div class="type-list" role="group" aria-label="[[Τύποι πυροσβεστήρων|Extinguisher types]]">
+        <div class="type-list" data-when="fire" role="group" aria-label="[[Τύποι πυροσβεστήρων|Extinguisher types]]">
           <button type="button" aria-pressed="true" data-type="powder"><span class="type-mark" aria-hidden="true">ABC</span><span>[[Ξηράς σκόνης|Dry powder]]</span></button>
           <button type="button" aria-pressed="false" data-type="co2" aria-label="CO₂"><span class="type-mark" aria-hidden="true">CO₂</span><span>[[Διοξειδίου|Carbon dioxide]]</span></button>
           <button type="button" aria-pressed="false" data-type="foam"><span class="type-mark" aria-hidden="true">AB</span><span>[[Αφρού|Foam]]</span></button>
           <button type="button" aria-pressed="false" data-type="wet"><span class="type-mark" aria-hidden="true">F</span><span>[[Υγρού χημικού|Wet chemical]]</span></button>
         </div>
-        <div class="model-info">
+        <div class="model-info" data-when="fire">
           <div class="model-description" aria-live="polite">
             <h2 id="type-title">[[Ξηράς σκόνης ABC|ABC dry powder]]</h2>
             <p id="type-description">[[Η σήμανση ABC αφορά στερεά υλικά, εύφλεκτα υγρά και αέρια. Η ξηρή σκόνη αφήνει κατάλοιπα.|ABC covers solid materials, flammable liquids and gases. Dry powder leaves residue.]]</p>
@@ -85,14 +92,28 @@
             </div>
           </details>
         </div>
-        <div class="model-actions"><a class="button button-outline" href="#catalog" id="model-catalog" data-filter-link="powder">[[Δείτε προϊόντα αυτού του τύπου|Browse products of this type]]</a><button class="button button-outline" id="compare-open" type="button">[[Σύγκριση τύπων|Compare types]]</button></div>
+        <div class="model-actions" data-when="fire"><a class="button button-outline" href="#catalog" id="model-catalog" data-filter-link="powder">[[Δείτε προϊόντα αυτού του τύπου|Browse products of this type]]</a><button class="button button-outline" id="compare-open" type="button">[[Σύγκριση τύπων|Compare types]]</button></div>
+        <div class="care-explorer" data-when="care" hidden>
+          <div class="model-description">
+            <h2>[[Εξερευνήστε το αναπηρικό αμαξίδιο|Explore the wheelchair]]</h2>
+            <p>[[Επιλέξτε ένα σημείο στο 3D μοντέλο ή ένα από τα μέρη παρακάτω.|Select a point on the 3D model or choose a part below.]]</p>
+          </div>
+          <div class="part-list care-parts" role="group" aria-label="[[Μέρη αμαξιδίου|Wheelchair parts]]">
+            <button type="button" data-care-part="backrest" aria-pressed="false">[[Πλάτη &amp; κάθισμα|Backrest &amp; seat]]</button>
+            <button type="button" data-care-part="wheel" aria-pressed="false">[[Τροχοί|Wheels]]</button>
+            <button type="button" data-care-part="brake" aria-pressed="false">[[Φρένα στάθμευσης|Parking brakes]]</button>
+            <button type="button" data-care-part="footrest" aria-pressed="false">[[Υποπόδια|Footrests]]</button>
+          </div>
+          <div class="care-part-detail" id="care-part-detail" role="status" hidden><strong id="care-part-name"></strong><p id="care-part-description"></p></div>
+          <div class="model-actions"><a class="button button-outline" href="#catalog" data-filter-link="care-wheelchairs">[[Δείτε τα αμαξίδια στον κατάλογο|Browse wheelchairs]] <span aria-hidden="true">↗</span></a></div>
+        </div>
       </div>
     </section>
     <section class="portfolio section" id="services" aria-labelledby="services-title">
       <div class="shell">
         <p class="eyebrow">[[ΕΞΟΠΛΙΣΜΟΣ ΚΑΙ ΤΕΧΝΙΚΗ ΥΠΟΣΤΗΡΙΞΗ|EQUIPMENT AND TECHNICAL SUPPORT]]</p>
         <h2 id="services-title">[[Εξοπλισμός &amp; υπηρεσίες|Equipment &amp; services]]</h2>
-        <div class="department-grid">
+        <div class="department-grid" data-when="fire">
           <a class="department department-lead" href="#catalog" data-filter-link="extinguishers"><img src="/legacy/extinguishers.webp" alt="" loading="lazy"><div><h3>[[Πυροσβεστήρες|Fire extinguishers]]</h3><p>[[Φορητοί, τροχήλατοι, οροφής και τοπικής εφαρμογής. Ξηράς σκόνης, CO₂, αφρού και υγρού χημικού.|Portable, wheeled, ceiling-mounted and local-application models. Dry powder, CO₂, foam and wet chemical.]]</p></div></a>
           <button type="button" class="department" data-equipment="detection" aria-haspopup="dialog"><img src="/legacy/detection.webp" alt="" loading="lazy"><div><h3>[[Πυρανίχνευση|Fire detection]]</h3><p>[[Συμβατικά και διευθυνσιοδοτούμενα συστήματα, ανίχνευση αερίων και φωτισμός ασφαλείας.|Conventional and addressable systems, gas detection and emergency lighting.]]</p></div></button>
           <button type="button" class="department" data-equipment="cabinets" aria-haspopup="dialog"><img src="/legacy/cabinets.webp" alt="" loading="lazy"><div><h3>[[Πυροσβεστικές φωλιές &amp; σταθμοί|Fire hose cabinets &amp; stations]]</h3><p>[[Φωλιές, πυροσβεστικοί σταθμοί, λάστιχα και εξαρτήματα δικτύου.|Fire hose cabinets, stations, hoses and network fittings.]]</p></div></button>
@@ -101,7 +122,7 @@
           <button type="button" class="department department-compact" data-equipment="agents" aria-haspopup="dialog"><img src="/legacy/agents.webp" alt="" loading="lazy"><div><h3>[[Υλικά κατάσβεσης|Extinguishing agents]]</h3><p>[[Κατασβεστικά υλικά για συντήρηση, αναγόμωση και τεχνικές εφαρμογές.|Extinguishing agents for servicing, refilling and technical applications.]]</p></div></button>
           <button type="button" class="department department-compact" data-equipment="rok" aria-haspopup="dialog"><img src="/legacy/rok.webp" alt="" loading="lazy"><div><h3>[[Εξοπλισμός POK|POK equipment]]</h3><p>[[Αυλοί, κανόνια, αφροποιητικός εξοπλισμός, σύνδεσμοι και τεχνικοί κατάλογοι.|Nozzles, monitors, foam equipment, couplings and technical catalogues.]]</p></div></button>
         </div>
-        <div class="service-showcase">
+        <div class="service-showcase" data-when="fire">
           <article class="service-feature">
             <img src="/legacy/servicing.webp" alt="" width="700" height="440" loading="lazy">
             <div class="service-feature-copy"><h3>[[Συντήρηση &amp; αναγόμωση|Servicing &amp; refills]]</h3><p>[[Από τον αρχικό έλεγχο μέχρι την αναγόμωση. Καταγράφουμε τον τύπο, την ποσότητα και την κατάσταση του εξοπλισμού σας για να προγραμματιστεί η κατάλληλη εργασία.|From the initial inspection to refilling. We record the type, quantity and condition of your equipment to schedule the right service.]]</p>
@@ -116,6 +137,20 @@
               <button class="button button-outline" type="button" data-equipment="systems" aria-haspopup="dialog">[[Δείτε τα συστήματα|Explore systems]]</button>
             </div>
           </article>
+        </div>
+        <div class="department-grid care-department-grid" data-when="care" hidden>
+          <a class="department care-department" href="#catalog" data-filter-link="care-wheelchairs"><img src="/legacy/care-category-wheelchairs.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Αναπηρικά αμαξίδια|Wheelchairs]]</h3><p>[[Χειροκίνητα, ηλεκτροκίνητα και αμαξίδια μεταφοράς.|Manual, powered and transport wheelchairs.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-walking"><img src="/legacy/care-category-walking.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Βοηθήματα βάδισης|Walking aids]]</h3><p>[[Περιπατητήρες, μπαστούνια και πατερίτσες.|Rollators, canes and crutches.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-transfer"><img src="/legacy/care-category-transfer.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Ανύψωση &amp; μεταφορά|Patient lifting &amp; transfer]]</h3><p>[[Γερανοί, καρέκλες ανύψωσης, σάκοι και βοηθήματα μεταφοράς.|Hoists, lift chairs, slings and transfer aids.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-respiratory"><img src="/legacy/care-category-respiratory.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Αναπνευστικός εξοπλισμός|Respiratory equipment]]</h3><p>[[Συμπυκνωτές, νεφελοποιητές και αναπνευστικά εξαρτήματα.|Concentrators, nebulisers and respiratory accessories.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-bathroom"><img src="/legacy/care-category-bathroom.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Βοηθήματα μπάνιου|Bathroom aids]]</h3><p>[[Καθίσματα μπάνιου, χειρολαβές και βοηθήματα τουαλέτας.|Shower seats, grab rails and toilet aids.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-beds"><img src="/legacy/care-category-beds.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Κλίνες &amp; εξοπλισμός|Beds &amp; accessories]]</h3><p>[[Κλίνες φροντίδας, στρώματα και εξαρτήματα.|Care beds, mattresses and accessories.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-diagnostics"><img src="/legacy/care-category-diagnostics.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Διαγνωστικές συσκευές|Diagnostic devices]]</h3><p>[[Πιεσόμετρα, θερμόμετρα και εξοπλισμός μέτρησης.|Blood pressure monitors, thermometers and measuring devices.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-pressure"><img src="/legacy/care-category-pressure.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Είδη πρόληψης κατακλίσεων|Pressure care]]</h3><p>[[Στρώματα, αεραντλίες και μαξιλάρια.|Mattresses, air pumps and cushions.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-daily"><img src="/legacy/care-category-daily.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Καθημερινή φροντίδα|Daily living aids]]</h3><p>[[Πολυθρόνες και βοηθήματα για τη φροντίδα στο σπίτι.|Recliners and equipment for home care.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-clinic"><img src="/legacy/care-category-clinic.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Ιατρείο &amp; φυσικοθεραπεία|Clinic &amp; physiotherapy]]</h3><p>[[Εξοπλισμός εξέτασης, άσκησης και φυσικοθεραπείας.|Examination, exercise and physiotherapy equipment.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-first-aid"><img src="/legacy/care-category-first-aid.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Πρώτες βοήθειες|First aid]]</h3><p>[[Φαρμακεία, κιτ πρώτων βοηθειών και αναλώσιμα.|First-aid kits and supplies.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
+          <a class="department care-department" href="#catalog" data-filter-link="care-orthopaedics"><img src="/legacy/care-category-orthopaedics.webp" alt="" width="460" height="315" loading="lazy"><div><h3>[[Ορθοπεδικά είδη|Orthopaedics]]</h3><p>[[Νάρθηκες, ζώνες και στηρίγματα ανά σημείο του σώματος.|Braces, supports and belts by part of the body.]]</p><span class="care-card-link">[[Δείτε τα προϊόντα|Browse products]] <b aria-hidden="true">↗</b></span></div></a>
         </div>
       </div>
     </section>
@@ -133,12 +168,9 @@
     </dialog>
     <section class="section catalog-section" id="catalog" aria-labelledby="catalog-title">
       <div class="shell">
-        <p class="eyebrow">[[ΚΑΤΑΛΟΓΟΣ ΚΑΤΑΣΤΗΜΑΤΟΣ|STORE CATALOGUE]]</p>
+        <p class="eyebrow" data-when="fire">[[ΚΑΤΑΛΟΓΟΣ ΠΥΡΟΠΡΟΣΤΑΣΙΑΣ|FIRE PROTECTION CATALOGUE]]</p>
+        <p class="eyebrow" data-when="care" hidden>[[ΦΡΟΝΤΙΔΑ &amp; ΥΠΟΣΤΗΡΙΞΗ|CARE &amp; SUPPORT]]</p>
         <h2 id="catalog-title" tabindex="-1">[[Βρείτε τον εξοπλισμό σας|Find your equipment]]</h2>
-        <div class="catalog-departments" id="care" role="group" aria-label="[[Τμήματα καταλόγου|Catalogue departments]]">
-          <button type="button" data-department="fire" aria-pressed="true"><img src="/legacy/extinguishers.webp" alt="" width="64" height="64"><span>[[Πυροπροστασία|Fire protection]]<small id="count-fire"></small></span><b aria-hidden="true">↗</b></button>
-          <button type="button" data-department="care" aria-pressed="false"><img src="/care-cover.webp" alt="" width="64" height="64"><span>[[Φροντίδα &amp; υποστήριξη|Care &amp; daily living]]<small id="count-care"></small></span><b aria-hidden="true">↗</b></button>
-        </div>
         <div class="catalog-tools">
           <label>[[Αναζήτηση προϊόντος ή κωδικού|Search by product or code]]<input id="catalog-search" type="search" placeholder="[[π.χ. 6 kg, CO₂, MBK…|e.g. 6 kg, CO₂, MBK…]]"></label>
           <label hidden>[[Τύπος προϊόντος|Product type]]<select id="catalog-types"></select></label>
@@ -156,7 +188,7 @@
         <div id="product-detail"></div>
       </div>
     </dialog>
-    <section class="section shop-guide" id="guide" aria-labelledby="guide-title">
+    <section class="section shop-guide" data-when="fire" id="guide" aria-labelledby="guide-title">
       <div class="shell guide-room">
         <p class="eyebrow">[[ΔΙΑΔΡΑΣΤΙΚΟΣ ΟΔΗΓΟΣ|INTERACTIVE GUIDE]]</p>
         <h2 id="guide-title">[[Εξερευνήστε κάθε χώρο|Explore each setting]]</h2>

@@ -23,7 +23,7 @@ const pageSize = 12
 const euro = new Intl.NumberFormat(english ? 'en-IE' : 'el-GR', { style: 'currency', currency: 'EUR' })
 const priceText = (cents) => euro.format(cents / 100)
 
-export async function setupCatalogue(pickQuote) {
+export async function setupCatalogue(pickQuote, initialDepartment) {
   const input = document.getElementById('catalog-search')
   const filters = document.getElementById('catalog-filters')
   const types = document.getElementById('catalog-types')
@@ -38,16 +38,13 @@ export async function setupCatalogue(pickQuote) {
   let openedProduct
   let items = [], visible = pageSize, section = 'all', type = 'all'
 
-  let department = location.hash === '#care' ? 'care' : 'fire'
+  let department = initialDepartment
   const pending = { fire: true, care: true }
   const failed = { fire: false, care: false }
   const belongs = (product) => isCareCategory(product.category) === (department === 'care')
 
   function chooseDepartment(key) {
     department = key
-    for (const button of document.querySelectorAll('button[data-department]')) {
-      button.setAttribute('aria-pressed', String(button.dataset.department === key))
-    }
     buildFilters()
     chooseSection('all', 'all', true)
   }
@@ -251,17 +248,12 @@ export async function setupCatalogue(pickQuote) {
     const previous = render()
     grid.children[previous]?.focus({ preventScroll: true })
   })
+  document.addEventListener('cataloguedepartment', (event) => chooseDepartment(event.detail))
   document.addEventListener('click', (event) => {
-    const departmentControl = event.target.closest('[data-department]')
-    if (departmentControl) {
-      chooseDepartment(departmentControl.dataset.department)
-      return
-    }
     const link = event.target.closest('[data-filter-link]')
     if (!link) return
     const key = link.dataset.filterLink
     const parent = sectionByType.get(key)
-    if (department !== "fire") chooseDepartment("fire")
     chooseSection(parent || key, parent ? key : 'all', true)
   })
   dialog.querySelector('.dialog-close').addEventListener('click', () => close())

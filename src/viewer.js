@@ -6,6 +6,7 @@ import {
   TorusGeometry, TubeGeometry, Vector2, Vector3, WebGLRenderer,
 } from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { buildWheelchair } from './wheelchair.js'
 import { createSoftwareRenderer } from './software-viewer.js'
 
 const specs = {
@@ -72,7 +73,7 @@ function buildModel(type, texture) {
   const label = new MeshBasicMaterial({ map: texture, toneMapped: false })
   const labelRadius = radius + .006
   const labelHeight = 1.46
-  const labelArc = labelHeight * texture.image.width / texture.image.height / labelRadius
+  const labelArc = labelHeight * (texture ? texture.image.width / texture.image.height : .73) / labelRadius
   item(new CylinderGeometry(labelRadius, labelRadius, labelHeight, 48, 1, true, -labelArc / 2, labelArc), label, [0, 1.11, 0])
   item(new CylinderGeometry(.06, .055, .16, 16), steel, [radius * .42, height + .245, -.035], [0, 0, Math.PI / 2])
 
@@ -107,7 +108,7 @@ function buildModel(type, texture) {
 }
 
 export function openViewer(surface, artwork, onPart, onSpinChange) {
-  const texture = labelTexture(artwork)
+  const texture = artwork ? labelTexture(artwork) : null
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
   const options = { alpha: true, antialias: true }
   let canvas = document.createElement('canvas')
@@ -127,6 +128,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
 
   const scene = new Scene()
   const camera = new PerspectiveCamera(34, 1, .1, 40)
+  const accents = []
   if (context) {
     renderer.setClearColor(0, 0)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -149,13 +151,19 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
       const light = new DirectionalLight(new Color(color), intensity)
       light.position.set(...position)
       scene.add(light)
+      accents.push(light)
     }
   }
 
   const pins = {}
-  for (const [part, title] of Object.entries({ label: tr('Ετικέτα', 'Label'), valve: tr('Βαλβίδα', 'Valve'), outlet: tr('Ακροφύσιο', 'Nozzle') })) {
+  for (const [part, title] of Object.entries({
+    label: tr('Ετικέτα', 'Label'), valve: tr('Βαλβίδα', 'Valve'), outlet: tr('Ακροφύσιο', 'Nozzle'),
+    backrest: tr('Πλάτη & κάθισμα', 'Backrest & seat'), wheel: tr('Τροχοί', 'Wheels'),
+    brake: tr('Φρένα στάθμευσης', 'Parking brakes'), footrest: tr('Υποπόδια', 'Footrests'),
+  })) {
     const pin = document.createElement('button')
     pin.type = 'button'
+    pin.hidden = true
     pin.className = 'model-pin'
     pin.setAttribute('aria-label', title)
     pin.title = title
@@ -165,10 +173,11 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
     pins[part] = pin
   }
 
-  const frontAngle = -.12
+  let wheelchair = false
+  const frontAngle = () => wheelchair ? -.64 : -.12
   const fullTurn = Math.PI * 2
   let current, spin
-  let target = frontAngle, rotation = -.95
+  let target = frontAngle(), rotation = -.95
   let zoom = 1, targetZoom = 1
   let width = 1, height = 1, frame = 0, dragging = false, position = 0
   let lastMovement = 0, velocity = 0
@@ -209,14 +218,20 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
     renderer.render(scene, camera, Boolean(spin || dragging || target !== rotation || targetZoom !== zoom))
     surface.classList.remove('is-preview')
     for (const [part, pin] of pinEntries) {
-      projected.copy(current.anchors[part])
+      const anchor = current.anchors[part]
+      if (!anchor) {
+        pin.hidden = true
+        continue
+      }
+      projected.copy(anchor)
       current.model.localToWorld(projected)
-      const behind = projected.z < -.17 && part !== 'valve'
+      const behind = wheelchair ? projected.z < -.77 : projected.z < -.17 && part !== 'valve'
       projected.project(camera)
       const x = (projected.x + 1) * width / 2
       const y = (1 - projected.y) * height / 2
       pin.hidden = behind || y < 24 || y > height - 20
-      pin.style.left = x + (part === 'label' ? -24 : part === 'outlet' ? 19 : -16) + 'px'
+      const offset = { label: -24, outlet: 19, backrest: 17, wheel: 18, brake: 23, footrest: -16 }[part] ?? -16
+      pin.style.left = x + offset + 'px'
       pin.style.top = y + 'px'
     }
     if (spin || target !== rotation || targetZoom !== zoom) schedule()
@@ -226,13 +241,18 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
     if (!frame && current) frame = requestAnimationFrame(draw)
   }
 
+  function positionCamera() {
+    camera.aspect = width / height
+    const distance = wheelchair ? 6.45 : 6.02
+    camera.position.set(0, wheelchair ? 2.43 : 1.82, distance / Math.min(1, camera.aspect / .88))
+    camera.lookAt(.03, wheelchair ? 1.25 : 1.49, 0)
+    camera.updateProjectionMatrix()
+  }
+
   function resize() {
     width = Math.max(surface.clientWidth, 1)
     height = Math.max(surface.clientHeight, 1)
-    camera.aspect = width / height
-    camera.position.set(0, 1.82, 6.02 / Math.min(1, camera.aspect / .88))
-    camera.lookAt(.03, 1.49, 0)
-    camera.updateProjectionMatrix()
+    positionCamera()
     renderer.setSize(width, height)
     schedule()
   }
@@ -283,11 +303,14 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
     set(type) {
       stopSpin()
       if (current) scene.remove(current.model)
-      if (!models.has(type)) models.set(type, buildModel(type, texture))
+      wheelchair = type === 'wheelchair'
+      if (!models.has(type)) models.set(type, wheelchair ? buildWheelchair() : buildModel(type, texture))
       current = models.get(type)
+      if (accents.length) accents[1].color.set(wheelchair ? 0x54cbb3 : 0xff3330)
+      positionCamera()
       scene.add(current.model)
-      align(frontAngle)
-      rotation = target - (reduce ? 0 : .65)
+      align(frontAngle())
+      rotation = target - (reduce ? 0 : wheelchair ? .30 : .65)
       for (const [, pin] of pinEntries) pin.classList.remove('active')
       schedule()
     },
@@ -311,14 +334,16 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
     },
     reset() {
       stopSpin()
-      align(frontAngle)
+      align(frontAngle())
       targetZoom = 1
       for (const [, pin] of pinEntries) pin.classList.remove('active')
       schedule()
     },
     focus(part) {
       stopSpin()
-      align({ valve: -.10, outlet: -.65, label: .05 }[part])
+      const focusAngle = { valve: -.10, outlet: -.65, label: .05, backrest: -.27, wheel: -.96, brake: -.88, footrest: .30 }[part]
+      if (focusAngle === undefined || !current?.anchors[part]) return
+      align(focusAngle)
       for (const [name, pin] of pinEntries) pin.classList.toggle('active', name === part)
       schedule()
     },

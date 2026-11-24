@@ -8,6 +8,7 @@ await mkdir('dist/.openai', { recursive: true })
 const assets = {
   '/inter-greek.woff2': ['inter-greek.woff2', 'font/woff2'],
   '/inter-latin.woff2': ['inter-latin.woff2', 'font/woff2'],
+  '/wheelchair-preview.webp': ['wheelchair-preview.webp', 'image/webp'],
   '/care-cover.webp': ['care-cover.webp', 'image/webp'],
   '/care-catalogue.json': ['care-catalogue.json', 'application/json; charset=utf-8'],
   '/catalogue.json': ['catalogue.json', 'application/json; charset=utf-8'],
