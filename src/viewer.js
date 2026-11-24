@@ -2,7 +2,7 @@ import { tr } from './locale.js'
 import {
   ACESFilmicToneMapping, AmbientLight, BoxGeometry, CanvasTexture, CatmullRomCurve3, Color,
   CylinderGeometry, DirectionalLight, Group, HemisphereLight, LatheGeometry, MathUtils,
-  Mesh, MeshStandardMaterial, PerspectiveCamera, PMREMGenerator, Scene, SRGBColorSpace,
+  Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PMREMGenerator, Scene, SRGBColorSpace,
   TorusGeometry, TubeGeometry, Vector2, Vector3, WebGLRenderer,
 } from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
@@ -69,11 +69,11 @@ function buildModel(type, texture) {
     item(new BoxGeometry(.08, .013, .006), matte, [0, height + .205, .179], [0, 0, .62])
   }
 
-  const label = new MeshStandardMaterial({ map: texture, roughness: .76 })
+  const label = new MeshBasicMaterial({ map: texture, toneMapped: false })
   const labelRadius = radius + .006
-  const labelHeight = 1.24
+  const labelHeight = 1.46
   const labelArc = labelHeight * texture.image.width / texture.image.height / labelRadius
-  item(new CylinderGeometry(labelRadius, labelRadius, labelHeight, 48, 1, true, -labelArc / 2, labelArc), label, [0, 1.23, 0])
+  item(new CylinderGeometry(labelRadius, labelRadius, labelHeight, 48, 1, true, -labelArc / 2, labelArc), label, [0, 1.11, 0])
   item(new CylinderGeometry(.06, .055, .16, 16), steel, [radius * .42, height + .245, -.035], [0, 0, Math.PI / 2])
 
   const side = radius + (spec.horn ? .30 : .21)
@@ -99,7 +99,7 @@ function buildModel(type, texture) {
   }
 
   const anchors = {
-    label: new Vector3(-.29, 1.24, radius * .92),
+    label: new Vector3(-.37, 1.13, radius * .83),
     valve: new Vector3(-.06, height + .34, .17),
     outlet: new Vector3(outlet[0] + .055, end - .18, .20),
   }
@@ -129,7 +129,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
   const camera = new PerspectiveCamera(34, 1, .1, 40)
   if (context) {
     renderer.setClearColor(0, 0)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.toneMapping = ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.12
     const pmrem = new PMREMGenerator(renderer)
@@ -206,7 +206,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
     }
     current.model.rotation.y = rotation
     current.model.updateMatrixWorld()
-    renderer.render(scene, camera)
+    renderer.render(scene, camera, Boolean(spin || dragging || target !== rotation || targetZoom !== zoom))
     surface.classList.remove('is-preview')
     for (const [part, pin] of pinEntries) {
       projected.copy(current.anchors[part])
@@ -268,6 +268,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
   })
   canvas.addEventListener('lostpointercapture', () => {
     dragging = false
+    schedule()
     surface.classList.remove('is-dragging')
   })
   canvas.addEventListener('webglcontextlost', (event) => {
@@ -305,7 +306,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
       schedule()
     },
     zoom(enabled) {
-      targetZoom = enabled ? 1.23 : 1
+      targetZoom = enabled ? 1.33 : 1
       schedule()
     },
     reset() {

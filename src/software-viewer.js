@@ -16,10 +16,10 @@ function createGeometry(mesh) {
   const material = mesh.material
   const color = material.color.clone().convertLinearToSRGB().toArray().map((value) => value * 255)
   let texture = material.map?.image
-  if (texture && texture.width > 160) {
-    // Prefilter the artwork for this renderer's 480 px viewport.
+  if (texture && texture.width > 320) {
+    // Preserve fine print while filtering the source at a practical size.
     const sample = document.createElement('canvas')
-    sample.width = 160
+    sample.width = 320
     sample.height = Math.round(texture.height * sample.width / texture.width)
     const context = sample.getContext('2d')
     context.imageSmoothingQuality = 'high'
@@ -33,6 +33,7 @@ function createGeometry(mesh) {
     diffuse: new Float32Array(position.count),
     gloss: new Float32Array(position.count),
     shine: material.roughness < .35 ? 24 : 12,
+    unlit: material.isMeshBasicMaterial,
   }
 }
 
@@ -68,7 +69,7 @@ function transform(shape, mesh, camera, width, height) {
 }
 
 function rasterize(shape, rgba, depth, width, height) {
-  const { color, pixels, texture, position, indices, uv, points, diffuse, gloss } = shape
+  const { color, pixels, texture, position, indices, uv, points, diffuse, gloss, unlit } = shape
   for (let t = 0; t < indices.length; t += 3) {
     const i = indices[t], j = indices[t + 1], k = indices[t + 2]
     if (i >= position.count || j >= position.count || k >= position.count) continue
@@ -94,20 +95,32 @@ function rasterize(shape, rgba, depth, width, height) {
         const pixel = y * width + x
         if (z >= depth[pixel]) continue
         depth[pixel] = z
-        const d = wa * diffuse[i] + wb * diffuse[j] + wc * diffuse[k]
-        const s = wa * gloss[i] + wb * gloss[j] + wc * gloss[k]
+        const light = wa * diffuse[i] + wb * diffuse[j] + wc * diffuse[k]
+        const d = unlit ? .88 + .12 * Math.min(light, 1) : light
+        const s = unlit ? 0 : wa * gloss[i] + wb * gloss[j] + wc * gloss[k]
         let r = color[0], g = color[1], bColor = color[2]
         if (pixels) {
           const pa = wa * points[a + 3], pb = wb * points[b + 3], pc = wc * points[c + 3]
           const total = pa + pb + pc
           const u = (pa * uv.getX(i) + pb * uv.getX(j) + pc * uv.getX(k)) / total
           const v = (pa * uv.getY(i) + pb * uv.getY(j) + pc * uv.getY(k)) / total
-          const tx = Math.max(0, Math.min(texture.width - 1, Math.floor(u * texture.width)))
-          const ty = Math.max(0, Math.min(texture.height - 1, Math.floor((1 - v) * texture.height)))
-          const sample = (ty * texture.width + tx) * 4
-          r = pixels[sample]
-          g = pixels[sample + 1]
-          bColor = pixels[sample + 2]
+          const tx = Math.max(0, Math.min(texture.width - 1, u * texture.width - .5))
+          const ty = Math.max(0, Math.min(texture.height - 1, (1 - v) * texture.height - .5))
+          const left = Math.floor(tx), top = Math.floor(ty)
+          const right = Math.min(left + 1, texture.width - 1)
+          const bottom = Math.min(top + 1, texture.height - 1)
+          const xWeight = tx - left, yWeight = ty - top
+          const tl = (top * texture.width + left) * 4
+          const tr = (top * texture.width + right) * 4
+          const bl = (bottom * texture.width + left) * 4
+          const br = (bottom * texture.width + right) * 4
+          const topLeftWeight = (1 - xWeight) * (1 - yWeight)
+          const topRightWeight = xWeight * (1 - yWeight)
+          const bottomLeftWeight = (1 - xWeight) * yWeight
+          const bottomRightWeight = xWeight * yWeight
+          r = pixels[tl] * topLeftWeight + pixels[tr] * topRightWeight + pixels[bl] * bottomLeftWeight + pixels[br] * bottomRightWeight
+          g = pixels[tl + 1] * topLeftWeight + pixels[tr + 1] * topRightWeight + pixels[bl + 1] * bottomLeftWeight + pixels[br + 1] * bottomRightWeight
+          bColor = pixels[tl + 2] * topLeftWeight + pixels[tr + 2] * topRightWeight + pixels[bl + 2] * bottomLeftWeight + pixels[br + 2] * bottomRightWeight
         }
         const offset = pixel * 4
         rgba[offset] = r * d + s
@@ -123,19 +136,27 @@ export function createSoftwareRenderer(domElement) {
   const ctx = domElement.getContext('2d')
   if (!ctx) throw new Error('Canvas unavailable')
   const shapes = new WeakMap()
-  let width, height, image, depth
+  let displayWidth, displayHeight
+  let width, height, image, depth, moving
   return {
     domElement,
-    setSize(displayWidth, displayHeight) {
-      const scale = Math.min(1, 480 / Math.max(displayWidth, displayHeight))
-      width = Math.round(displayWidth * scale)
-      height = Math.round(displayHeight * scale)
-      domElement.width = width
-      domElement.height = height
-      image = ctx.createImageData(width, height)
-      depth = new Float32Array(width * height)
+    setSize(nextWidth, nextHeight) {
+      displayWidth = nextWidth
+      displayHeight = nextHeight
+      image = undefined
     },
-    render(scene, camera) {
+    render(scene, camera, inMotion = false) {
+      if (!image || moving !== inMotion) {
+        moving = inMotion
+        const maxSize = moving ? 580 : 1120
+        const scale = Math.min(moving ? 1 : 1.6, maxSize / Math.max(displayWidth, displayHeight))
+        width = Math.max(1, Math.round(displayWidth * scale))
+        height = Math.max(1, Math.round(displayHeight * scale))
+        domElement.width = width
+        domElement.height = height
+        image = ctx.createImageData(width, height)
+        depth = new Float32Array(width * height)
+      }
       scene.updateMatrixWorld()
       camera.updateMatrixWorld()
       depth.fill(Infinity)

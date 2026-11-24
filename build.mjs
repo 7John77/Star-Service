@@ -18,7 +18,7 @@ const assets = {
   '/star-service-logo-dark.svg': ['star-service-logo-dark.svg', 'image/svg+xml'],
   '/star-service-icon.svg': ['star-service-icon.svg', 'image/svg+xml'],
   '/star-service-icon.png': ['star-service-icon.png', 'image/png'],
-  '/extinguisher-preview.webp': ['extinguisher-preview.webp', 'image/webp'],
+  '/extinguisher-preview-hd.webp': ['extinguisher-preview-hd.webp', 'image/webp'],
   '/inspection-label.webp': ['inspection-label.webp', 'image/webp'],
   '/hero.webp': ['hero.webp', 'image/webp'],
 }
