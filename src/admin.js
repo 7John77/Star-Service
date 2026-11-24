@@ -1,4 +1,4 @@
-import { categories, normalize, productKey } from './catalogue-fields.js'
+import { categories, isCareCategory, normalize, productKey } from './catalogue-fields.js'
 import { make } from './locale.js'
 
 const element = (id) => document.getElementById(id)
@@ -15,6 +15,11 @@ const notice = element('notice')
 const byCategory = new Map(categories.map(([key, greek]) => [key, greek]))
 const currency = new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' })
 const limit = 16
+const sectionButtons = [...element('admin-departments').querySelectorAll('button')]
+const categoryCards = element('admin-categories')
+const categoryCounts = new Map()
+const number = new Intl.NumberFormat('el-GR')
+let department = 'all'
 let products = []
 let prices = {}
 let page = 1
@@ -144,11 +149,46 @@ function row(product) {
   return article
 }
 
+const matchesDepartment = (key) => department === 'all' || isCareCategory(key) === (department === 'care')
+
+function showCategories() {
+  const groups = [...byCategory].filter(([key]) => categoryCounts.has(key) && matchesDepartment(key))
+  const total = groups.reduce((sum, [key]) => sum + categoryCounts.get(key), 0)
+  const all = [['', 'Όλες οι κατηγορίες', total], ...groups.map(([key, label]) => [key, label, categoryCounts.get(key)])]
+  for (const button of sectionButtons) button.setAttribute('aria-pressed', String(button.dataset.group === department))
+  category.replaceChildren()
+  categoryCards.replaceChildren()
+  for (const [key, label, count] of all) {
+    const option = make('option', label)
+    option.value = key
+    category.append(option)
+    const card = make('button', '', 'admin-category')
+    card.type = 'button'
+    card.dataset.category = key
+    card.classList.toggle('is-care', isCareCategory(key))
+    card.append(make('span', label), make('strong', number.format(count)))
+    card.addEventListener('click', () => {
+      category.value = key
+      page = 1
+      render()
+    })
+    categoryCards.append(card)
+  }
+}
+
+for (const button of sectionButtons) button.addEventListener('click', () => {
+  department = button.dataset.group
+  page = 1
+  showCategories()
+  render()
+})
+
 function render() {
   const term = normalize(search.value)
   const group = category.value
   const state = pricing.value
   const results = products.filter(product =>
+    matchesDepartment(product.category) &&
     (!group || group === product.category) &&
     (!state || (state === 'published') === Object.hasOwn(prices, product.key)) &&
     product.searchKey.includes(term),
@@ -157,7 +197,8 @@ function render() {
   const pages = Math.max(1, Math.ceil(results.length / limit))
   page = Math.min(page, pages)
   list.replaceChildren(...results.slice((page - 1) * limit, page * limit).map(row))
-  element('result-count').textContent = results.length ? results.length + ' αποτελέσματα' : 'Δεν βρέθηκαν προϊόντα.'
+  for (const card of categoryCards.children) card.setAttribute('aria-pressed', String(card.dataset.category === group))
+  element('result-count').textContent = results.length ? number.format(results.length) + ' αποτελέσματα' : 'Δεν βρέθηκαν προϊόντα.'
   element('pagination').hidden = pages < 2
   element('page').textContent = page + ' / ' + pages
   element('previous').disabled = page === 1
@@ -166,20 +207,18 @@ function render() {
 
 async function showDashboard(data) {
   if (!products.length) {
-    const response = await fetch('/catalogue.json')
-    if (!response.ok) throw new Error('catalogue')
-    products = (await response.json()).map((product, index) => ({
+    const catalogues = await Promise.all(['/catalogue.json', '/care-catalogue.json'].map(async path => {
+      const response = await fetch(path)
+      if (!response.ok) throw new Error('catalogue')
+      return response.json()
+    }))
+    products = catalogues.flat().map((product, index) => ({
       ...product, index, key: productKey(product),
       exactCodes: [product.code, product.sku].filter(Boolean).map(normalize),
-      searchKey: normalize([product.code, product.sku, product.title, product.en].filter(Boolean).join(' ')),
+      searchKey: normalize([product.code, product.sku, product.title, product.en, product.familyEl].filter(Boolean).join(' ')),
     }))
-    const available = new Set(products.map(product => product.category))
-    for (const [key, label] of byCategory) {
-      if (!available.has(key)) continue
-      const option = make('option', label)
-      option.value = key
-      category.append(option)
-    }
+    for (const product of products) categoryCounts.set(product.category, (categoryCounts.get(product.category) || 0) + 1)
+    showCategories()
   }
   prices = data.prices
   login.hidden = true

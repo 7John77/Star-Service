@@ -1,3 +1,19 @@
+export const careCategories = [
+  ['care-respiratory', 'Αναπνευστικός εξοπλισμός', 'Respiratory equipment'],
+  ['care-wheelchairs', 'Αναπηρικά αμαξίδια', 'Wheelchairs'],
+  ['care-walking', 'Βοηθήματα βάδισης', 'Walking aids'],
+  ['care-transfer', 'Ανύψωση & μεταφορά', 'Patient lifting & transfer'],
+  ['care-bathroom', 'Βοηθήματα μπάνιου', 'Bathroom aids'],
+  ['care-beds', 'Κλίνες & εξοπλισμός', 'Beds & accessories'],
+  ['care-diagnostics', 'Διαγνωστικές συσκευές', 'Diagnostic devices'],
+  ['care-pressure', 'Είδη πρόληψης κατακλίσεων', 'Pressure care'],
+  ['care-daily', 'Καθημερινή φροντίδα', 'Daily living aids'],
+  ['care-clinic', 'Ιατρείο & φυσικοθεραπεία', 'Clinic & physiotherapy'],
+  ['care-first-aid', 'Πρώτες βοήθειες', 'First aid'],
+  ['care-orthopaedics', 'Ορθοπεδικά είδη', 'Orthopaedics'],
+]
+export const isCareCategory = (key) => key.startsWith('care-')
+
 export const categories = [
   ['all', 'Όλες οι κατηγορίες', 'All categories'],
   ['powder', 'Ξηράς σκόνης', 'Dry powder'],
@@ -18,6 +34,7 @@ export const categories = [
   ['safety', 'Μέσα προστασίας & πρώτες βοήθειες', 'Protective equipment & first aid'],
   ['gadgets', 'Είδη πυρασφάλειας', 'Fire safety accessories'],
   ['other', 'Λοιπός εξοπλισμός', 'Other equipment'],
+  ...careCategories,
 ]
 
 export const productKey = (product) => JSON.stringify([

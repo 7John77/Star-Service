@@ -40,10 +40,21 @@
         </div>
         <div class="pricing-count"><strong id="priced-total">0</strong><span>προϊόντα με τιμή</span></div>
       </div>
+      <section class="panel admin-groups" aria-labelledby="admin-groups-title">
+        <div class="admin-group-heading">
+          <h2 id="admin-groups-title">Τμήματα &amp; κατηγορίες</h2>
+          <div id="admin-departments" class="admin-departments" role="group" aria-label="Τμήματα">
+            <button type="button" data-group="all" aria-pressed="true">Όλα</button>
+            <button type="button" data-group="fire" aria-pressed="false">Πυροπροστασία</button>
+            <button type="button" data-group="care" aria-pressed="false">Φροντίδα &amp; υποστήριξη</button>
+          </div>
+        </div>
+        <div id="admin-categories" class="admin-categories" role="group" aria-label="Κατηγορίες"></div>
+      </section>
       <div class="panel catalogue-panel">
         <div class="filters">
           <label for="search">Κωδικός ή όνομα προϊόντος
-            <input type="search" id="search" placeholder="π.χ. 0135305 ή Ball Valve" autocomplete="off">
+            <input type="search" id="search" placeholder="π.χ. 0811900 ή καρέκλα ανύψωσης" autocomplete="off">
           </label>
           <label for="category">Κατηγορία
             <select id="category"><option value="">Όλες οι κατηγορίες</option></select>

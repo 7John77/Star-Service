@@ -8,6 +8,8 @@ await mkdir('dist/.openai', { recursive: true })
 const assets = {
   '/inter-greek.woff2': ['inter-greek.woff2', 'font/woff2'],
   '/inter-latin.woff2': ['inter-latin.woff2', 'font/woff2'],
+  '/care-cover.webp': ['care-cover.webp', 'image/webp'],
+  '/care-catalogue.json': ['care-catalogue.json', 'application/json; charset=utf-8'],
   '/catalogue.json': ['catalogue.json', 'application/json; charset=utf-8'],
   '/style.css': ['style.css', 'text/css; charset=utf-8'],
   '/fonts.css': ['fonts.css', 'text/css; charset=utf-8'],
@@ -45,9 +47,14 @@ for (const [path, [name, type]] of Object.entries(assets)) {
 embedded[stylePath] = { body: stylesheet, type: 'text/css; charset=utf-8' }
 embedded[sitePath] = embedded['/site.js'] = { body: siteScript, type: 'text/javascript; charset=utf-8' }
 const admin = await build({ entryPoints: ['src/admin.js'], bundle: true, write: false, format: 'esm', minify: true })
-embedded['/admin/'] = { body: await readFile('src/admin.html', 'utf8'), type: 'text/html; charset=utf-8' }
-embedded['/admin.js'] = { body: admin.outputFiles[0].text, type: 'text/javascript; charset=utf-8' }
-embedded['/admin.css'] = { body: await readFile('src/admin.css', 'utf8'), type: 'text/css; charset=utf-8' }
+const adminScript = admin.outputFiles[0].text
+const adminStyle = await readFile('src/admin.css', 'utf8')
+const adminJs = '/admin-' + createHash('sha256').update(adminScript).digest('hex').slice(0, 12) + '.js'
+const adminCss = '/admin-' + createHash('sha256').update(adminStyle).digest('hex').slice(0, 12) + '.css'
+const adminPage = (await readFile('src/admin.html', 'utf8')).replace('/admin.js', adminJs).replace('/admin.css', adminCss)
+embedded['/admin/'] = { body: adminPage, type: 'text/html; charset=utf-8' }
+embedded[adminJs] = embedded['/admin.js'] = { body: adminScript, type: 'text/javascript; charset=utf-8' }
+embedded[adminCss] = embedded['/admin.css'] = { body: adminStyle, type: 'text/css; charset=utf-8' }
 const worker = await readFile('src/worker.js', 'utf8')
 const quoteNeeds = JSON.parse(await readFile('src/quote-needs.json', 'utf8'))
 await writeFile('dist/server/index.js', 'const assets = ' + JSON.stringify(embedded) + '\nconst quoteNeeds = ' + JSON.stringify(quoteNeeds) + '\n' + worker)

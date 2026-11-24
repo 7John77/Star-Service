@@ -1,5 +1,5 @@
 import { english, make, tr } from './locale.js'
-import { categories, normalize, productKey } from './catalogue-fields.js'
+import { categories, careCategories, isCareCategory, normalize, productKey } from './catalogue-fields.js'
 
 const categoryMap = new Map(categories.map(([key, el, en]) => [key, tr(el, en)]))
 const sections = [
@@ -13,6 +13,7 @@ const sections = [
   ['protection', 'Προστασία & πρώτες βοήθειες', 'Protection & first aid', ['safety', 'gadgets']],
   ['rok', 'Κατάλογος POK', 'POK catalogue', ['rok']],
   ['other', 'Λοιπός εξοπλισμός', 'Other equipment', ['other']],
+  ...careCategories.map(([key, el, en]) => [key, el, en, [key]]),
 ]
 const sectionByType = new Map(sections.flatMap(section => section[3].map(type => [type, section[0]])))
 const featured = /^(?:Πυροσβεστήρας [36] ?Kg Ξηράς Σκόνης|Πυροσβεστήρας 2 ?Kg CO2 - Έξοδος στο πλάι|Πυροσβεστήρας 9 ?Lt ABF|Τροχήλατος Πυροσβεστήρας 100 ?Lt Αφρού)$/i
@@ -26,6 +27,7 @@ export async function setupCatalogue(pickQuote) {
   const input = document.getElementById('catalog-search')
   const filters = document.getElementById('catalog-filters')
   const types = document.getElementById('catalog-types')
+  const family = document.getElementById('catalog-family')
   const grid = document.getElementById('catalog-grid')
   const status = document.getElementById('catalog-status')
   const more = document.getElementById('catalog-more')
@@ -35,6 +37,20 @@ export async function setupCatalogue(pickQuote) {
   let prices = {}
   let openedProduct
   let items = [], visible = pageSize, section = 'all', type = 'all'
+
+  let department = location.hash === '#care' ? 'care' : 'fire'
+  const pending = { fire: true, care: true }
+  const failed = { fire: false, care: false }
+  const belongs = (product) => isCareCategory(product.category) === (department === 'care')
+
+  function chooseDepartment(key) {
+    department = key
+    for (const button of document.querySelectorAll('button[data-department]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.department === key))
+    }
+    buildFilters()
+    chooseSection('all', 'all', true)
+  }
 
   function chooseSection(value, subtype = 'all', clearSearch = false) {
     if (clearSearch) input.value = ''
@@ -55,11 +71,22 @@ export async function setupCatalogue(pickQuote) {
       }
       types.value = type
     }
+    const families = new Map(items.filter(item => item.section === section && item.family)
+      .map(item => [item.family, tr(item.familyEl, item.familyEn)]))
+    family.replaceChildren()
+    const options = [...families].sort((a, b) => a[1].localeCompare(b[1], english ? 'en' : 'el'))
+    for (const [key, label] of [['', tr('Όλες οι υποκατηγορίες', 'All subcategories')], ...options]) {
+      const option = make('option', label)
+      option.value = key
+      family.append(option)
+    }
+    family.parentElement.hidden = !families.size
     render(true)
   }
 
   function buildFilters() {
-    const available = new Set(items.map(item => sectionByType.get(item.category)))
+    const available = new Set(items.filter(belongs).map(item => item.section))
+    filters.replaceChildren()
     for (const [value, el, en] of [['all', 'Όλα τα προϊόντα', 'All products'], ...sections]) {
       if (value !== 'all' && !available.has(value)) continue
       const button = make('button', tr(el, en))
@@ -148,7 +175,7 @@ export async function setupCatalogue(pickQuote) {
     const quote = make('button', tr('Προσφορά για αυτό το είδος', 'Request a quote for this item'), 'button button-red')
     quote.type = 'button'
     quote.addEventListener('click', () => close(() => {
-      pickQuote(/^(powder|co2|foam|wet|special|mounts|agents|parts|gadgets)$/.test(product.category) ? 'Προμήθεια πυροσβεστήρων' : 'Πυρανίχνευση / πυροπροστασία', product.code ? product.code + ' · ' + title : title)
+      pickQuote(isCareCategory(product.category) ? 'Είδη φροντίδας' : /^(powder|co2|foam|wet|special|mounts|agents|parts|gadgets)$/.test(product.category) ? 'Προμήθεια πυροσβεστήρων' : 'Πυρανίχνευση / πυροπροστασία', product.code ? product.code + ' · ' + title : title)
       document.getElementById('study').scrollIntoView({ behavior: reduce.matches ? 'instant' : 'smooth' })
     }))
     actions.append(quote)
@@ -196,10 +223,13 @@ export async function setupCatalogue(pickQuote) {
 
   function render(animate = false) {
     const text = normalize(input.value)
-    const filtered = items.filter(product => (section === 'all' || product.section === section) && (type === 'all' || product.category === type) && product.searchKey.includes(text))
+    const filtered = items.filter(product => belongs(product) && (!family.value || product.family === family.value) && (section === 'all' || product.section === section) && (type === 'all' || product.category === type) && product.searchKey.includes(text))
+    if (text) filtered.sort((a, b) => Number(b.codes.includes(text)) - Number(a.codes.includes(text)))
     const previousLength = grid.children.length
     grid.replaceChildren(...filtered.slice(0, visible).map(card))
-    status.textContent = filtered.length
+    if (pending[department]) status.textContent = tr('Φόρτωση καταλόγου…', 'Loading catalogue…')
+    else if (failed[department]) status.textContent = tr('Ο κατάλογος δεν φορτώθηκε. Ανανεώστε τη σελίδα.', 'The catalogue did not load. Reload the page.')
+    else status.textContent = filtered.length
       ? tr('Καταχωρίσεις ', 'Listings ') + Math.min(visible, filtered.length) + ' / ' + filtered.length
       : tr('Δεν βρέθηκαν καταχωρίσεις.', 'No listings found.')
     more.hidden = visible >= filtered.length
@@ -214,6 +244,7 @@ export async function setupCatalogue(pickQuote) {
     visible = pageSize
     render(true)
   })
+  family.addEventListener('change', () => { visible = pageSize; render(true) })
   input.addEventListener('input', () => { visible = pageSize; render() })
   more.addEventListener('click', () => {
     visible += pageSize
@@ -221,34 +252,52 @@ export async function setupCatalogue(pickQuote) {
     grid.children[previous]?.focus({ preventScroll: true })
   })
   document.addEventListener('click', (event) => {
+    const departmentControl = event.target.closest('[data-department]')
+    if (departmentControl) {
+      chooseDepartment(departmentControl.dataset.department)
+      return
+    }
     const link = event.target.closest('[data-filter-link]')
     if (!link) return
     const key = link.dataset.filterLink
     const parent = sectionByType.get(key)
+    if (department !== "fire") chooseDepartment("fire")
     chooseSection(parent || key, parent ? key : 'all', true)
   })
   dialog.querySelector('.dialog-close').addEventListener('click', () => close())
   dialog.addEventListener('cancel', (event) => { event.preventDefault(); close() })
   dialog.addEventListener('click', (event) => { if (event.target === dialog) close() })
-  try {
-    const response = await fetch('/catalogue.json')
-    if (!response.ok) throw new Error()
-    items = (await response.json()).map(product => ({
-      ...product,
-      section: sectionByType.get(product.category),
-      isFeatured: product.storeListed && featured.test(product.title),
-      searchKey: normalize([product.title, product.en, product.capacity, product.code, product.sku].filter(Boolean).join(' ')),
-    }))
-    items.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
-    buildFilters()
-    chooseSection(section, type)
-    fetch('/api/prices').then(response => response.ok ? response.json() : null).then(data => {
-      if (!data?.prices) return
-      prices = data.prices
-      for (const button of grid.children) showPrice(button.querySelector('.product-price'), button.priceProduct)
-      if (dialog.open && openedProduct) showPrice(detail.querySelector('.product-price'), openedProduct)
-    }).catch(() => {})
-  } catch {
-    status.textContent = tr('Ο κατάλογος δεν μπόρεσε να φορτώσει. Ανανεώστε τη σελίδα.', 'The catalogue could not load. Reload the page.')
+  async function load(key, path) {
+    try {
+      const response = await fetch(path)
+      if (!response.ok) throw new Error('Catalogue unavailable')
+      const data = (await response.json()).map(product => ({
+        ...product,
+        section: sectionByType.get(product.category),
+        isFeatured: product.storeListed && featured.test(product.title),
+        codes: [product.code, product.sku].filter(Boolean).map(normalize),
+        searchKey: normalize([product.title, product.en, product.capacity, product.code, product.sku, product.familyEl, product.familyEn].filter(Boolean).join(' ')),
+      }))
+      items.push(...data.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured)))
+      const count = new Intl.NumberFormat(english ? 'en' : 'el').format(data.length)
+      document.getElementById('count-' + key).textContent = count + tr(' καταχωρίσεις', ' listings')
+    } catch {
+      failed[key] = true
+    } finally {
+      pending[key] = false
+      if (key === department) {
+        buildFilters()
+        chooseSection(section, type)
+      }
+    }
   }
+
+  chooseDepartment(department)
+  fetch('/api/prices').then(response => response.ok ? response.json() : null).then(data => {
+    if (!data?.prices) return
+    prices = data.prices
+    for (const button of grid.children) showPrice(button.querySelector('.product-price'), button.priceProduct)
+    if (dialog.open && openedProduct) showPrice(detail.querySelector('.product-price'), openedProduct)
+  }).catch(() => {})
+  await Promise.all([load('fire', '/catalogue.json'), load('care', '/care-catalogue.json')])
 }

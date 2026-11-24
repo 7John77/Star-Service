@@ -865,3 +865,15 @@ button.department { text-align: left; font: inherit; }
 .product-price { color: #245745; font-weight: 800; font-variant-numeric: tabular-nums; }
 .product-card-copy .product-price { font-size: 1.05rem; }
 #product-detail .product-price { font-size: 1.55rem; margin-block: .45rem; }
+
+.catalog-departments { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin:1.35rem 0; scroll-margin-top:5rem; }
+.catalog-departments button { display:grid; grid-template-columns:64px minmax(0,1fr) auto; align-items:center; gap:.8rem; padding:.7rem; text-align:left; font:inherit; font-weight:750; color:#182a24; background:#f9fcfa; border:1px solid #c6d8cd; border-radius:.9rem; cursor:pointer; transition:background .2s,border-color .2s; }
+.catalog-departments img { border-radius:.5rem; object-fit:contain; background:#fff; }
+.catalog-departments small { display:block; margin-top:.22rem; font-size:.76rem; opacity:.9; }
+.catalog-departments button[aria-pressed="true"] { background:#21483d; border-color:#21483d; color:white; }
+.catalog-departments button:hover { border-color:#578674; }
+@media (max-width: 570px) {
+  .catalog-departments button { gap:.4rem; padding:.45rem; grid-template-columns:36px minmax(0,1fr); font-size:.82rem; }
+  .catalog-departments img { width:36px; height:36px; }
+  .catalog-departments b { display:none; }
+}

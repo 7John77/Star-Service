@@ -20,7 +20,7 @@
     <a class="brand" href="[[/|/en/]]" aria-label="Star Service"><img src="/star-service-logo.svg" alt="Star Service" width="251" height="53"></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="[[Μενού|Menu]]"><span aria-hidden="true"></span></button>
     <nav id="nav" aria-label="[[Κύρια πλοήγηση|Main navigation]]">
-      <a href="#catalog">[[Κατάλογος|Catalogue]]</a><a href="#services">[[Υπηρεσίες|Services]]</a><a href="#clients">[[Πελατολόγιο|Clients]]</a><a href="#contact">[[Επικοινωνία|Contact]]</a>
+      <a href="#catalog">[[Κατάλογος|Catalogue]]</a><a href="#care" data-department="care">[[Φροντίδα|Care]]</a><a href="#services">[[Υπηρεσίες|Services]]</a><a href="#clients">[[Πελατολόγιο|Clients]]</a><a href="#contact">[[Επικοινωνία|Contact]]</a>
     </nav>
     <a class="language-switch" href="[[/en/|/]]" hreflang="[[en|el]]" aria-label="[[English|Ελληνικά]]">[[EN|EL]]</a>
     <a class="button button-red header-cta" href="#study"><span class="desktop-cta">[[Ζητήστε προσφορά|Request a quote]]</span><span class="mobile-cta">[[Προσφορά|Quote]]</span></a>
@@ -135,9 +135,14 @@
       <div class="shell">
         <p class="eyebrow">[[ΚΑΤΑΛΟΓΟΣ ΚΑΤΑΣΤΗΜΑΤΟΣ|STORE CATALOGUE]]</p>
         <h2 id="catalog-title" tabindex="-1">[[Βρείτε τον εξοπλισμό σας|Find your equipment]]</h2>
+        <div class="catalog-departments" id="care" role="group" aria-label="[[Τμήματα καταλόγου|Catalogue departments]]">
+          <button type="button" data-department="fire" aria-pressed="true"><img src="/legacy/extinguishers.webp" alt="" width="64" height="64"><span>[[Πυροπροστασία|Fire protection]]<small id="count-fire"></small></span><b aria-hidden="true">↗</b></button>
+          <button type="button" data-department="care" aria-pressed="false"><img src="/care-cover.webp" alt="" width="64" height="64"><span>[[Φροντίδα &amp; υποστήριξη|Care &amp; daily living]]<small id="count-care"></small></span><b aria-hidden="true">↗</b></button>
+        </div>
         <div class="catalog-tools">
           <label>[[Αναζήτηση προϊόντος ή κωδικού|Search by product or code]]<input id="catalog-search" type="search" placeholder="[[π.χ. 6 kg, CO₂, MBK…|e.g. 6 kg, CO₂, MBK…]]"></label>
           <label hidden>[[Τύπος προϊόντος|Product type]]<select id="catalog-types"></select></label>
+          <label hidden>[[Υποκατηγορία|Subcategory]]<select id="catalog-family"></select></label>
         </div>
         <div class="catalog-filters" id="catalog-filters" role="group" aria-label="[[Κατηγορίες προϊόντων|Product categories]]"></div>
         <p id="catalog-status" class="catalog-status" aria-live="polite">[[Φόρτωση καταλόγου…|Loading catalogue…]]</p>
@@ -206,6 +211,7 @@
             <label><input type="radio" name="purpose" value="Πυρανίχνευση / πυροπροστασία" required><span>[[Πυρανίχνευση &amp; συστήματα|Detection &amp; systems]]</span></label>
             <label><input type="radio" name="purpose" value="Συντήρηση / αναγόμωση" required><span>[[Συντήρηση &amp; αναγόμωση|Servicing &amp; refills]]</span></label>
             <label><input type="radio" name="purpose" value="Μελέτη / κάτοψη" required><span>[[Μελέτη πυροπροστασίας|Fire protection study]]</span></label>
+            <label><input type="radio" name="purpose" value="Είδη φροντίδας" required><span>[[Είδη φροντίδας|Care equipment]]</span></label>
             <label class="quote-guidance"><input type="radio" name="purpose" value="Βοήθεια επιλογής" required><span>[[Χρειάζομαι βοήθεια στην επιλογή|I need help choosing]]</span></label>
           </div><p id="quote-product" hidden></p>
           <fieldset class="quote-needs" id="quote-needs" hidden>

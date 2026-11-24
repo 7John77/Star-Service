@@ -1,4 +1,9 @@
 {
+  "Είδη φροντίδας": {
+    "mobility": ["Κινητικότητα και καθημερινή υποστήριξη", "Mobility and daily living"],
+    "equipment": ["Εξοπλισμός φροντίδας", "Care equipment"],
+    "accessories": ["Αναλώσιμα και εξαρτήματα", "Consumables and accessories"]
+  },
   "Προμήθεια πυροσβεστήρων": {
     "new": ["Νέος εξοπλισμός", "New equipment"],
     "replace": ["Αντικατάσταση", "Replacement"],

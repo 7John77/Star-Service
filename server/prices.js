@@ -1,9 +1,10 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import catalogue from '../src/catalogue.json' with { type: 'json' }
+import care from '../src/care-catalogue.json' with { type: 'json' }
 import { productKey } from '../src/catalogue-fields.js'
 
 const pricesKey = 'star-service:prices:v1'
-const products = new Set(catalogue.map(productKey))
+const products = new Set([...catalogue, ...care].map(productKey))
 const cookieName = 'star_service_price_session'
 const sessionTime = 8 * 60 * 60
 const maxPrice = 99_999_999
