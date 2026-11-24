@@ -22,9 +22,24 @@ const illustrativePhoto = tr('Ενδεικτική φωτογραφία', 'Illus
 const pageSize = 12
 const euro = new Intl.NumberFormat(english ? 'en-IE' : 'el-GR', { style: 'currency', currency: 'EUR' })
 const priceText = (cents) => euro.format(cents / 100)
+const searchTerm = (word) => normalize(word)
+  .replace(/^πυροσβεστηρ(?:ας|ες)$/, 'πυροσβεστηρ')
+  .replace(/^αμαξιδι(?:ο|α)$/, 'αμαξιδι')
+  .replace(/^καρεκλ(?:α|ες)$/, 'καρεκλ')
+const coverBySection = {
+  extinguishers: 'extinguishers', accessories: 'mounts', water: 'cabinets',
+  detection: 'detection', agents: 'agents', barriers: 'doors', systems: 'systems',
+}
+const remoteCareImage = 'https://mobiakcare.com/sites/default/files/'
+const imageSize = (url, width) => url.startsWith(remoteCareImage) && location.protocol === 'https:' && location.hostname !== 'localhost'
+  ? '/_vercel/image?url=' + encodeURIComponent(url) + '&w=' + width + '&q=75'
+  : url
+const representativePhoto = tr('Ενδεικτική εικόνα κατηγορίας', 'Representative category image')
 
 export async function setupCatalogue(pickQuote, initialDepartment) {
   const input = document.getElementById('catalog-search')
+  const clear = document.getElementById('catalog-clear')
+  const reset = document.getElementById('catalog-reset')
   const filters = document.getElementById('catalog-filters')
   const types = document.getElementById('catalog-types')
   const family = document.getElementById('catalog-family')
@@ -37,6 +52,7 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   let prices = {}
   let openedProduct
   let items = [], visible = pageSize, section = 'all', type = 'all'
+  let searchTimer
 
   let department = initialDepartment
   const pending = { fire: true, care: true }
@@ -95,15 +111,34 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     }
   }
 
-  function setImage(image, source, fallback) {
+  function setImage(image, candidates, width, cover, note, illustrative = false) {
+    const sources = [...new Set(candidates.filter(Boolean).flatMap(url => [imageSize(url, width), url]))]
+    if (cover) sources.push(cover)
+    sources.push('/star-service-icon.svg')
+    let index = 0
     image.referrerPolicy = 'no-referrer'
-    image.onerror = () => {
-      image.onerror = null
-      setImage(image, fallback)
+    image.decoding = 'async'
+    function next() {
+      const url = sources[index++]
+      const categoryImage = url === cover
+      const missing = index === sources.length
+      image.classList.toggle('product-image-missing', missing)
+      image.alt = categoryImage && image.dataset.productAlt ? representativePhoto : missing ? '' : image.dataset.productAlt || ''
+      if (note) {
+        note.hidden = !categoryImage && !missing && !illustrative
+        note.textContent = categoryImage ? representativePhoto : missing
+          ? tr('Φωτογραφία προσωρινά μη διαθέσιμη', 'Photo temporarily unavailable')
+          : illustrativePhoto
+      }
+      image.onerror = missing ? null : next
+      image.src = url
     }
-    if (!source) image.onerror = null
-    image.src = source || '/star-service-icon.svg'
-    image.classList.toggle('product-image-missing', !source)
+    next()
+  }
+
+  function coverImage(product) {
+    const cover = isCareCategory(product.category) ? 'care-category-' + product.category.slice(5) : coverBySection[product.section]
+    return cover ? '/legacy/' + cover + '.webp' : undefined
   }
 
   function showPrice(node, product) {
@@ -119,8 +154,9 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     detail.replaceChildren()
     const gallery = make('figure', '', 'product-display')
     const image = make('img')
-    setImage(image, product.images[0])
-    image.alt = title
+    const photoNote = make('figcaption', '', 'product-photo-note')
+    image.dataset.productAlt = title
+    setImage(image, [...product.images.slice(0, 3), product.thumbnail], 768, coverImage(product), photoNote, product.imageIllustrative)
     gallery.append(image)
     if (product.images.length > 1) {
       const thumbs = make('div', '', 'product-thumbs')
@@ -132,12 +168,12 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
         choice.setAttribute('aria-label', tr('Φωτογραφία ', 'Photo ') + (index + 1))
         choice.setAttribute('aria-pressed', String(index === 0))
         const thumbnail = make('img')
-        setImage(thumbnail, url)
-        thumbnail.alt = ''
+        thumbnail.loading = 'lazy'
+        setImage(thumbnail, [url], 160)
         choice.append(thumbnail)
         choice.addEventListener('click', () => {
-          if (image.getAttribute('src') === url) return
-          setImage(image, url)
+          if (choice.getAttribute('aria-pressed') === 'true') return
+          setImage(image, [url, ...product.images.slice(0, 3), product.thumbnail], 768, coverImage(product), photoNote, product.imageIllustrative)
           for (const other of thumbs.children) other.setAttribute('aria-pressed', String(other === choice))
           if (!reduce.matches) image.animate([{ opacity: .3, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 270 })
         })
@@ -145,13 +181,12 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
       }
       gallery.append(thumbs)
     }
-    if (product.imageIllustrative) gallery.append(make('figcaption', illustrativePhoto, 'product-photo-note'))
+    gallery.append(photoNote)
     detail.append(gallery)
     const price = make('p', '', 'product-price')
     showPrice(price, product)
     detail.append(price)
     if (product.code) detail.append(make('p', tr('Κωδικός', 'Code') + ' · ' + product.code, 'product-code'))
-    if (!product.images.length) detail.append(make('p', tr('Δεν υπάρχει διαθέσιμη φωτογραφία για αυτό το είδος.', 'No photo is available for this item.'), 'product-source-note'))
     if (product.features?.length) {
       const features = make('ul', '', 'product-features')
       for (const [el, en] of product.features) features.append(make('li', tr(el, en)))
@@ -201,7 +236,8 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     image.loading = 'lazy'
     image.width = 280
     image.height = 200
-    setImage(image, product.thumbnail || product.images[0], product.thumbnail ? product.images[0] : undefined)
+    const photoNote = make('span', '', 'product-photo-note')
+    setImage(image, [product.thumbnail, ...product.images.slice(0, 3)], 384, coverImage(product), photoNote, product.imageIllustrative)
     const copy = make('span', '', 'product-card-copy')
     const label = product.isFeatured ? tr('Επιλεγμένο είδος', 'Featured item') : categoryMap.get(product.category)
     copy.append(make('small', label), make('strong', productTitle(product)))
@@ -211,7 +247,7 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     showPrice(price, product)
     button.priceProduct = product
     copy.append(price)
-    if (product.imageIllustrative) copy.append(make('span', illustrativePhoto, 'product-photo-note'))
+    copy.append(photoNote)
     button.append(image, copy, make('span', '+', 'product-plus'))
     button.lastElementChild.setAttribute('aria-hidden', 'true')
     button.addEventListener('click', () => openProduct(product))
@@ -219,17 +255,30 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   }
 
   function render(animate = false) {
+    clearTimeout(searchTimer)
     const text = normalize(input.value)
-    const filtered = items.filter(product => belongs(product) && (!family.value || product.family === family.value) && (section === 'all' || product.section === section) && (type === 'all' || product.category === type) && product.searchKey.includes(text))
+    const words = (input.value.match(/[\p{L}\p{N}]+/gu) || []).map(searchTerm)
+    const filtered = items.filter(product => belongs(product) && (!family.value || product.family === family.value) && (section === 'all' || product.section === section) && (type === 'all' || product.category === type) && (
+      product.searchKey.includes(text) || words.every(word => product.searchKey.includes(word))
+    ))
     if (text) filtered.sort((a, b) => Number(b.codes.includes(text)) - Number(a.codes.includes(text)))
     const previousLength = grid.children.length
-    grid.replaceChildren(...filtered.slice(0, visible).map(card))
+    const shown = filtered.slice(0, visible)
+    const current = Array.from(grid.children)
+    if (current.length > shown.length || current.some((button, index) => button.priceProduct !== shown[index])) {
+      const cards = new Map(current.map(button => [button.priceProduct, button]))
+      grid.replaceChildren(...shown.map(product => cards.get(product) || card(product)))
+    } else {
+      grid.append(...shown.slice(current.length).map(card))
+    }
     if (pending[department]) status.textContent = tr('Φόρτωση καταλόγου…', 'Loading catalogue…')
     else if (failed[department]) status.textContent = tr('Ο κατάλογος δεν φορτώθηκε. Ανανεώστε τη σελίδα.', 'The catalogue did not load. Reload the page.')
     else status.textContent = filtered.length
       ? tr('Καταχωρίσεις ', 'Listings ') + Math.min(visible, filtered.length) + ' / ' + filtered.length
       : tr('Δεν βρέθηκαν καταχωρίσεις.', 'No listings found.')
     more.hidden = visible >= filtered.length
+    clear.hidden = !input.value
+    reset.hidden = pending[department] || failed[department] || filtered.length > 0 || (!text && section === 'all')
     if (animate && !reduce.matches && grid.children.length) {
       grid.animate([{ opacity: .35, transform: 'translateY(5px)' }, { opacity: 1, transform: 'none' }], { duration: 285, easing: 'cubic-bezier(.22,1,.36,1)' })
     }
@@ -242,7 +291,21 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     render(true)
   })
   family.addEventListener('change', () => { visible = pageSize; render(true) })
-  input.addEventListener('input', () => { visible = pageSize; render() })
+  input.addEventListener('input', () => {
+    clear.hidden = !input.value
+    clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => { visible = pageSize; render() }, 100)
+  })
+  clear.addEventListener('click', () => {
+    input.value = ''
+    visible = pageSize
+    render()
+    input.focus()
+  })
+  reset.addEventListener('click', () => {
+    chooseSection('all', 'all', true)
+    input.focus()
+  })
   more.addEventListener('click', () => {
     visible += pageSize
     const previous = render()
@@ -261,7 +324,7 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   dialog.addEventListener('click', (event) => { if (event.target === dialog) close() })
   async function load(key, path) {
     try {
-      const response = await fetch(path)
+      const response = await fetch(path, { priority: key === department ? 'high' : 'low' })
       if (!response.ok) throw new Error('Catalogue unavailable')
       const data = (await response.json()).map(product => ({
         ...product,

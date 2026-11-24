@@ -914,3 +914,25 @@ button.department { text-align: left; font: inherit; }
   .care-department h3 { overflow-wrap: anywhere; }
   .care-parts button { flex: 1 1 calc(50% - .37rem); }
 }
+
+.catalogue-department::after, .catalogue-department::before { display: none; }
+.catalogue-department > div { padding-right: 1rem; }
+.catalogue-department img { height: clamp(145px, 16vw, 205px); }
+.catalog-search-field { display: grid; gap: .35rem; }
+.catalog-search-input { position: relative; }
+.catalog-search-input input { padding-left: 2.5rem; padding-right: 3rem; }
+.catalog-search-input input::-webkit-search-cancel-button { display: none; }
+.catalog-search-input > span { position: absolute; top: 50%; left: .95rem; translate: 0 -58%; width: .8rem; height: .8rem; border-radius: 50%; border: 1.6px solid #4a7365; pointer-events: none; }
+.catalog-search-input > span::after { content: ""; position: absolute; top: .64rem; left: .57rem; width: .43rem; height: 1.5px; background: #4a7365; rotate: 45deg; }
+#catalog-clear { position: absolute; inset: 2px 2px 2px auto; width: 42px; border: 0; border-radius: .43rem; color: #31584d; background: transparent; font-size: 1.22rem; }
+#catalog-clear:hover { background: #e4f0e8; }
+#catalog-reset { margin-bottom: .68rem; }
+.care-guide { background: #174641; border-color: #2d6560; }
+.care-guide .eyebrow { color: #b9ddd2; }
+.care-guide .plan-pin { color: #fff; background: #216d61; border-color: #effcf7; box-shadow: 0 0 0 5px #42897b55; font-weight: 800; font-size: .95rem; }
+.care-guide .plan-pin:hover, .care-guide .plan-pin[aria-pressed="true"] { background: #123e39; box-shadow: 0 0 0 5px #4a988899; }
+@media (max-width: 570px) {
+  .catalogue-department img { height: 108px; }
+  .catalogue-department > div { padding: .65rem; }
+  .catalogue-department h3 { overflow-wrap: anywhere; }
+}

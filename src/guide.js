@@ -36,6 +36,36 @@ const scenes = {
   },
 }
 
+const careScenes = {
+  bedroom: {
+    name: ['Υπνοδωμάτιο', 'Bedroom'],
+    hint: ['Πατήστε στην κλίνη, στο στρώμα ή στην περιοχή μεταφοράς.', 'Select the bed, mattress or transfer area.'],
+    points: [
+      [271, 245, 'care-beds', 'Κλίνες και εξαρτήματα', 'Beds and accessories', 'Συγκρίνετε κλίνες, κάγκελα και εξαρτήματα με βάση τις διαστάσεις και τους διαθέσιμους μηχανισμούς.', 'Compare beds, rails and accessories by dimensions and available mechanisms.'],
+      [550, 326, 'care-pressure', 'Στρώματα και μαξιλάρια', 'Mattresses and cushions', 'Δείτε στρώματα, μαξιλάρια και αεραντλίες, με τα τεχνικά χαρακτηριστικά κάθε μοντέλου.', 'Explore mattresses, cushions and air pumps with specifications for each model.'],
+      [755, 421, 'care-transfer', 'Βοηθήματα μεταφοράς', 'Transfer aids', 'Εξερευνήστε καρέκλες ανύψωσης, γερανούς, σάκους και σανίδες μεταφοράς.', 'Explore lift chairs, hoists, slings and transfer boards.'],
+    ],
+  },
+  bathroom: {
+    name: ['Μπάνιο', 'Bathroom'],
+    hint: ['Εξερευνήστε τη ζώνη του ντους, της τουαλέτας και του νιπτήρα.', 'Explore the shower, toilet and washbasin areas.'],
+    points: [
+      [313, 252, 'care-bathroom', 'Καθίσματα μπάνιου', 'Shower seats', 'Δείτε σταθερά και ρυθμιζόμενα καθίσματα μπάνιου και τις διαστάσεις τους.', 'Browse fixed and adjustable shower seats and compare their dimensions.'],
+      [742, 234, 'care-bathroom', 'Βοηθήματα τουαλέτας', 'Toilet aids', 'Στον κατάλογο θα βρείτε ανυψωτικά, πλαίσια στήριξης και καρέκλες με δοχείο.', 'Browse raised seats, support frames and commode chairs.'],
+      [579, 423, 'care-daily', 'Καθημερινή φροντίδα', 'Daily living aids', 'Δείτε μικρά βοηθήματα και αναλώσιμα για την καθημερινή φροντίδα στο σπίτι.', 'Explore daily living aids and consumables for home care.'],
+    ],
+  },
+  mobility: {
+    name: ['Μετακίνηση', 'Getting around'],
+    hint: ['Πατήστε σε ένα σημείο της διαδρομής για να ανοίξετε τα σχετικά είδη.', 'Select a point along the route to open the relevant products.'],
+    points: [
+      [258, 324, 'care-walking', 'Βοηθήματα βάδισης', 'Walking aids', 'Δείτε μπαστούνια, πατερίτσες και περιπατητήρες. Τα φίλτρα του καταλόγου ξεχωρίζουν τους τύπους.', 'Explore canes, crutches and rollators. The catalogue filters let you browse by type.'],
+      [553, 238, 'care-wheelchairs', 'Αναπηρικά αμαξίδια', 'Wheelchairs', 'Συγκρίνετε χειροκίνητα, ηλεκτροκίνητα και αμαξίδια μεταφοράς.', 'Compare manual, powered and transport wheelchairs.'],
+      [745, 413, 'care-transfer', 'Ανύψωση και μεταφορά', 'Lifting and transfer', 'Δείτε τα βοηθήματα μεταφοράς μαζί με τις διαστάσεις και τα εξαρτήματά τους.', 'Explore transfer equipment, dimensions and accessories.'],
+    ],
+  },
+}
+
 function paint(canvas, key) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
@@ -164,6 +194,43 @@ function paint(canvas, key) {
     line(785,239,785,392,trim,4)
     label(tr('ΚΑΜΠΙΝΑ','CABIN'),268,173)
     label(tr('ΧΩΡΟΣ ΦΟΡΤΙΟΥ','CARGO AREA'),510,173)
+  } else if (key === 'bedroom') {
+    frame()
+    box(192, 137, 362, 221, steel, wall, 12, 5)
+    box(206, 150, 333, 192, '#fffdf5')
+    for (const y of [171, 238]) box(223, y, 58, 49, light)
+    box(299, 159, 231, 171, green)
+    for (let x = 320; x < 523; x += 27) line(x, 163, x, 325, '#b4cbba')
+    box(622, 130, 171, 56, wood)
+    box(701, 345, 119, 96, light)
+    plant(830, 476)
+    label(tr('ΚΛΙΝΗ','BED'), 194, 120)
+    label(tr('ΖΩΝΗ ΜΕΤΑΦΟΡΑΣ','TRANSFER AREA'), 627, 325)
+  } else if (key === 'bathroom') {
+    frame()
+    box(172, 121, 279, 252, '#cde5e4', wall, 8, 5)
+    for (let x = 199; x < 445; x += 35) line(x, 135, x, 356, '#aecece')
+    for (let y = 148; y < 360; y += 35) line(182, y, 442, y, '#aecece')
+    box(218, 193, 93, 68, light)
+    circle(389, 318, 12, '#90b1b1')
+    box(688, 131, 106, 49, steel)
+    circle(741, 224, 52, '#f9f9ee')
+    circle(741, 224, 31, '#d8e5df')
+    box(508, 394, 188, 81, steel)
+    circle(588, 431, 27, '#f9f9ee')
+    label(tr('ΝΤΟΥΣ','SHOWER'), 175, 109)
+    label(tr('ΤΟΥΑΛΕΤΑ','TOILET'), 664, 111)
+  } else if (key === 'mobility') {
+    frame()
+    box(167, 147, 661, 324, '#dcebe2', trim, 30)
+    for (let x = 194; x < 792; x += 58) line(x, 310, x + 28, 310, '#fffaf1', 4)
+    box(210, 229, 62, 83, '#f9fcf7')
+    for (const x of [209, 274]) for (const y of [229, 313]) circle(x, y, 8, '#729387')
+    box(501, 182, 85, 66, green, ink, 10, 3)
+    for (const x of [497, 593]) box(x, 179, 13, 76, steel, ink, 4)
+    box(688, 359, 119, 65, wood)
+    label(tr('ΔΙΑΔΡΟΜΗ','ROUTE'), 328, 148)
+    label(tr('ΣΗΜΕΙΟ ΜΕΤΑΦΟΡΑΣ','TRANSFER POINT'), 573, 457)
   } else {
     frame()
     rack(152,120,592)
@@ -180,21 +247,27 @@ function paint(canvas, key) {
 }
 
 export function setupGuide() {
-  const options = [...document.querySelectorAll('[data-guide]')]
-  const plan = document.getElementById('plan')
-  const art = document.getElementById('plan-art')
-  const points = document.getElementById('plan-points')
-  const name = document.getElementById('guide-name')
-  const heading = document.getElementById('guide-point')
-  const text = document.getElementById('guide-text')
-  const link = document.getElementById('guide-link')
+  wireGuide('guide', scenes, false)
+  wireGuide('care-guide', careScenes, true)
+}
+
+function wireGuide(id, guideScenes, care) {
+  const root = document.getElementById(id)
+  const options = [...root.querySelectorAll('[data-guide]')]
+  const plan = root.querySelector('canvas')
+  const art = root.querySelector('.plan-art')
+  const points = root.querySelector('.plan-points')
+  const name = document.getElementById(id + '-name')
+  const heading = document.getElementById(id + '-point')
+  const text = document.getElementById(id + '-text')
+  const link = document.getElementById(id + '-link')
   const reduce = matchMedia('(prefers-reduced-motion: reduce)')
   let currentScene
 
   function select(option, animate) {
     if (currentScene === option.dataset.guide) return
     currentScene = option.dataset.guide
-    const scene = scenes[currentScene]
+    const scene = guideScenes[currentScene]
     options.forEach((button) => button.setAttribute('aria-pressed', String(button === option)))
     paint(plan, currentScene)
     name.textContent = tr(...scene.name)
@@ -204,12 +277,15 @@ export function setupGuide() {
     points.replaceChildren()
     for (const [x, y, category, title, titleEn, description, descriptionEn] of scene.points) {
       const pin = make('button', '', 'plan-pin')
-      const icon = make('img')
-      icon.src = '/star-service-icon.svg'
-      icon.alt = ''
-      const plus = make('span', '+', 'pin-plus')
-      plus.setAttribute('aria-hidden', 'true')
-      pin.append(icon, plus)
+      if (care) pin.textContent = String(points.children.length + 1)
+      else {
+        const icon = make('img')
+        icon.src = '/star-service-icon.svg'
+        icon.alt = ''
+        const plus = make('span', '+', 'pin-plus')
+        plus.setAttribute('aria-hidden', 'true')
+        pin.append(icon, plus)
+      }
       pin.type = 'button'
       pin.setAttribute('aria-label', tr(title, titleEn))
       pin.setAttribute('aria-pressed', 'false')
