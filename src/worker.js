@@ -13,7 +13,7 @@ const formats = {
 const security = {
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'same-origin',
-  'content-security-policy': "default-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'",
+  'content-security-policy': "default-src 'self'; img-src 'self' https://www.mobiakfire.com; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'",
 }
 
 function json(data, status = 200) {
