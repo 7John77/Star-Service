@@ -34,7 +34,7 @@ const coverBySection = {
 }
 const representativePhoto = tr('Ενδεικτική εικόνα κατηγορίας', 'Representative category image')
 
-export async function setupCatalogue(pickQuote, initialDepartment) {
+export function setupCatalogue(pickQuote, initialDepartment, entry) {
   const input = document.getElementById('catalog-search')
   const clear = document.getElementById('catalog-clear')
   const reset = document.getElementById('catalog-reset')
@@ -49,6 +49,9 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)')
   let prices = {}
   let openedProduct
+  let opener
+  let fireDetails = {}
+  let fireDetailsRequest
   let items = [], visible = pageSize, section = 'all', type = 'all'
   let searchTimer
 
@@ -62,7 +65,7 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     department = key
     buildFilters()
     chooseSection('all', 'all', true)
-    ensureCatalogue(key)
+    if (!entry.open && requested.size) ensureCatalogue(key)
   }
 
   function chooseSection(value, subtype = 'all', clearSearch = false) {
@@ -151,13 +154,60 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     node.textContent = node.hidden ? '' : priceText(cents)
   }
 
-  function openProduct(product) {
+  function productFacts(product) {
+    const key = product.sku && product.code && !(product.sku === '0133051' && product.code === '0133051')
+      ? product.sku + '|' + product.code : product.title
+    const facts = new Map()
+    const supplemental = isCareCategory(product.category) ? [] : fireDetails[key] || []
+    for (const row of [...(product.specs || []), ...(extraSpecs[product.path || product.code || product.title] || []), ...supplemental]) {
+      if (!Array.isArray(row) || row.length !== 4 || !(row[2] || row[3]) || row[1] === 'ERP code') continue
+      const field = JSON.stringify([normalize(row[0]), normalize(row[2])])
+      if (!facts.has(field)) facts.set(field, row)
+    }
+    return [...facts.values()]
+  }
+
+  function showSpecifications(product, information) {
+    information.replaceChildren(make('h3', tr('Χαρακτηριστικά προϊόντος', 'Product specifications')))
+    const facts = productFacts(product)
+    if (product.features?.length) {
+      const features = make('ul', '', 'product-features')
+      for (const [el, en] of product.features) features.append(make('li', tr(el, en)))
+      information.append(features)
+    }
+    if (product.capacity && !facts.some(row => row[1] === 'Capacity')) information.append(make('p', product.capacity, 'product-capacity'))
+    if (facts.length) {
+      const list = make('dl', '', 'product-specs')
+      for (const [label, labelEnglish, value, valueEnglish] of facts) {
+        const row = make('div')
+        row.append(make('dt', tr(label, labelEnglish)), make('dd', tr(value, valueEnglish)))
+        list.append(row)
+      }
+      information.append(list)
+    }
+    if (information.children.length === 1) {
+      information.append(make('p', tr('Επικοινωνήστε για τεχνικές λεπτομέρειες του συγκεκριμένου είδους.', 'Contact us for the technical details of this item.'), 'product-source-note'))
+    }
+  }
+
+  function loadFireDetails() {
+    fireDetailsRequest ||= fetch('/fire-details.json')
+      .then(response => response.ok ? response.json() : {})
+      .then(data => { fireDetails = data })
+      .catch(() => {})
+    return fireDetailsRequest
+  }
+
+  function openProduct(product, button) {
+    if (dialog.open) return
+    opener = button
     openedProduct = product
     const title = productTitle(product)
     document.getElementById('product-title').textContent = title
     detail.replaceChildren()
     const gallery = make('figure', '', 'product-display')
     const image = make('img')
+    image.fetchPriority = 'high'
     const photoNote = make('figcaption', '', 'product-photo-note')
     image.dataset.productAlt = title
     setImage(image, [...product.images.slice(0, 3), product.thumbnail], 768, coverImage(product), photoNote, product.imageIllustrative)
@@ -193,27 +243,17 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     const meta = make('div', '', 'product-detail-meta')
     meta.append(make('p', categoryMap.get(product.category)))
     if (product.code) meta.append(make('p', tr('Κωδικός', 'Code') + ' · ' + product.code, 'product-code'))
+    if (product.sku && product.sku !== product.code) meta.append(make('p', 'ERP · ' + product.sku, 'product-code'))
     if (product.family) meta.append(make('p', tr(product.familyEl, product.familyEn)))
     detail.append(meta)
     const information = make('section', '', 'product-detail-facts')
-    information.append(make('h3', tr('Χαρακτηριστικά προϊόντος', 'Product specifications')))
-    if (product.features?.length) {
-      const features = make('ul', '', 'product-features')
-      for (const [el, en] of product.features) features.append(make('li', tr(el, en)))
-      information.append(features)
+    showSpecifications(product, information)
+    detail.append(information)
+    if (!isCareCategory(product.category)) {
+      loadFireDetails().then(() => {
+        if (dialog.open && information.isConnected) showSpecifications(product, information)
+      })
     }
-    const facts = product.specs?.length ? product.specs : extraSpecs[product.path || product.code || product.title] || []
-    if (product.capacity) information.append(make('p', product.capacity, 'product-capacity'))
-    if (facts.length) {
-      const list = make('dl', '', 'product-specs')
-      for (const [label, labelEnglish, value, valueEnglish] of facts) {
-        const row = make('div')
-        row.append(make('dt', tr(label, labelEnglish)), make('dd', tr(value, valueEnglish)))
-        list.append(row)
-      }
-      information.append(list)
-    }
-    if (information.children.length > 1) detail.append(information)
     const actions = make('div', '', 'product-actions')
     const quote = make('button', tr('Προσφορά για αυτό το είδος', 'Request a quote for this item'), 'button button-red')
     quote.type = 'button'
@@ -224,18 +264,13 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     actions.append(quote)
     detail.append(actions)
     dialog.showModal()
-    if (!reduce.matches) dialog.animate([{ opacity: 0, transform: 'translateY(10px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.22,1,.36,1)' })
+    dialog.scrollTop = 0
   }
 
-  async function close(after) {
-    if (!dialog.open || dialog.classList.contains('is-closing')) return
-    if (!reduce.matches) {
-      dialog.classList.add('is-closing')
-      await dialog.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(8px) scale(.985)' }], { duration: 220, fill: 'forwards' }).finished.catch(() => {})
-      dialog.getAnimations().forEach((animation) => animation.cancel())
-      dialog.classList.remove('is-closing')
-    }
+  function close(after) {
+    if (!dialog.open) return
     dialog.close()
+    if (!after && opener?.isConnected) opener.focus({ preventScroll: true })
     after?.()
   }
 
@@ -265,7 +300,8 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     view.append(arrow)
     copy.append(view)
     button.append(image, copy)
-    button.addEventListener('click', () => openProduct(product))
+    button.setAttribute('aria-haspopup', 'dialog')
+    button.addEventListener('click', () => openProduct(product, button))
     return button
   }
 
@@ -333,6 +369,7 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
     const key = link.dataset.filterLink
     const parent = sectionByType.get(key)
     chooseSection(parent || key, parent ? key : 'all', true)
+    if (!entry.open) ensureCatalogue(department)
   })
   dialog.querySelector('.dialog-close').addEventListener('click', () => close())
   dialog.addEventListener('cancel', (event) => { event.preventDefault(); close() })
@@ -367,10 +404,27 @@ export async function setupCatalogue(pickQuote, initialDepartment) {
   }
 
   chooseDepartment(department)
-  fetch('/api/prices').then(response => response.ok ? response.json() : null).then(data => {
-    if (!data?.prices) return
-    prices = data.prices
-    for (const button of grid.children) showPrice(button.querySelector('.product-price'), button.priceProduct)
-    if (dialog.open && openedProduct) showPrice(detail.querySelector('.product-price'), openedProduct)
-  }).catch(() => {})
+  let pricesRequested = false
+  function showCatalogue() {
+    if (entry.open) return
+    ensureCatalogue(department)
+    if (department === 'fire') loadFireDetails()
+    if (pricesRequested) return
+    pricesRequested = true
+    fetch('/api/prices').then(response => response.ok ? response.json() : null).then(data => {
+      if (!data?.prices) return
+      prices = data.prices
+      for (const button of grid.children) showPrice(button.querySelector('.product-price'), button.priceProduct)
+      if (dialog.open && openedProduct) showPrice(detail.querySelector('.product-price'), openedProduct)
+    }).catch(() => {})
+  }
+  const catalogue = document.getElementById('catalog')
+  const observer = new IntersectionObserver(([observation]) => {
+    if (observation.isIntersecting) showCatalogue()
+  }, { rootMargin: '320px' })
+  observer.observe(catalogue)
+  entry.addEventListener('close', () => {
+    if (catalogue.getBoundingClientRect().top < innerHeight + 320) showCatalogue()
+  })
+  input.addEventListener('focus', showCatalogue)
 }

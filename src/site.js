@@ -1,4 +1,3 @@
-import { openViewer } from './viewer.js'
 import { setupCatalogue } from './catalog.js'
 import { setupEquipment } from './equipment.js'
 import { setupGuide } from './guide.js'
@@ -55,6 +54,7 @@ try { savedDepartment = sessionStorage.getItem(departmentStorageKey) } catch {}
 let department = location.hash === '#care' || (location.hash !== '#fire' && savedDepartment === 'care') ? 'care' : 'fire'
 let fireType = 'powder'
 let viewer
+let viewerRequested = false
 let viewerFailed = false
 wireDisclosures()
 setupBrandWall()
@@ -103,6 +103,29 @@ function fallback() {
   byId('viewer-mode').textContent = tr('Προεπισκόπηση μοντέλου', 'Model preview')
   byId('viewer-hint').textContent = tr('Επιλέξτε ένα μέρος για λεπτομέρειες', 'Select a part for details')
   controls.hidden = true
+}
+
+function startViewer() {
+  if (viewerRequested || entry.open) return
+  viewerRequested = true
+  const prepare = () => {
+    const artwork = new Image()
+    artwork.src = '/inspection-label.webp'
+    const modulePath = __VIEWER_MODULE__
+    Promise.all([import(modulePath), artwork.decode().then(() => artwork, () => null)])
+      .then(([{ openViewer }, decoded]) => {
+        viewer = openViewer(surface, decoded, showPart, (spinning) => {
+          spinButton.setAttribute('aria-pressed', String(spinning))
+          byId('spin-label').textContent = spinning ? tr('Παύση', 'Pause') : '360°'
+        })
+        viewer.set(stage.dataset.activeModel, false)
+        controls.hidden = false
+      }).catch(fallback)
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if ('requestIdleCallback' in window) window.requestIdleCallback(prepare, { timeout: 800 })
+    else setTimeout(prepare, 100)
+  }))
 }
 
 for (const button of typeButtons) button.addEventListener('click', () => {
@@ -174,10 +197,16 @@ function showDepartment(next, initial = false) {
   byId('care-part-detail').hidden = true
   for (const button of careButtons) button.setAttribute('aria-pressed', 'false')
   updateZoom(false)
-  viewer?.zoom(false)
-  viewer?.set(model)
+  if (viewer && !initial) {
+    surface.classList.add('is-preview')
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (stage.dataset.activeModel !== model) return
+      viewer?.zoom(false)
+      viewer?.set(model, false)
+    }))
+  }
   if (viewerFailed) fallback()
-  if (!initial && !reducedMotion.matches) {
+  if (!initial && !entry.open && !reducedMotion.matches) {
     for (const panel of [document.querySelector('.hero-copy'), stage, document.querySelector('.department-grid[data-when="' + next + '"]')]) {
       panel.animate([{ opacity: .65, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' })
     }
@@ -195,7 +224,12 @@ function enterDepartment(next) {
   history.replaceState(null, '', location.pathname + location.search + (next === 'care' ? '#care' : ''))
   entry.close()
   window.scrollTo({ top: 0, behavior: 'instant' })
-  byId('hero-title').focus({ preventScroll: true })
+  requestAnimationFrame(() => byId('hero-title').focus({ preventScroll: true }))
+  if (!reducedMotion.matches) {
+    document.querySelector('.hero').animate([{ opacity: .72, transform: 'translateY(5px)' }, { opacity: 1, transform: 'none' }], {
+      duration: 220, easing: 'ease-out',
+    })
+  }
 }
 
 for (const button of entry.querySelectorAll('[data-entry]')) {
@@ -231,16 +265,13 @@ showDepartment(department, true)
 if (!savedDepartment && !location.hash) entry.showModal()
 
 surface.addEventListener('viewerunavailable', fallback)
-const artwork = new Image()
-artwork.src = '/inspection-label.webp'
-artwork.decode().then(() => artwork, () => null).then((decoded) => {
-  viewer = openViewer(surface, decoded, showPart, (spinning) => {
-    spinButton.setAttribute('aria-pressed', String(spinning))
-    byId('spin-label').textContent = spinning ? tr('Παύση', 'Pause') : '360°'
-  })
-  viewer.set(stage.dataset.activeModel)
-  controls.hidden = false
-}).catch(fallback)
+const stageVisibility = new IntersectionObserver(([observation]) => {
+  if (observation.isIntersecting) startViewer()
+}, { rootMargin: '90px' })
+stageVisibility.observe(stage)
+entry.addEventListener('close', () => {
+  if (stage.getBoundingClientRect().top < innerHeight + 90) startViewer()
+})
 
 const menu = document.querySelector('.menu-toggle')
 const nav = byId('nav')
@@ -258,7 +289,7 @@ document.addEventListener('keydown', (event) => {
 })
 
 const pickQuote = setupQuote()
-setupCatalogue(pickQuote, department)
+setupCatalogue(pickQuote, department, entry)
 setupEquipment(pickQuote)
 setupGuide()
 setupCompany()

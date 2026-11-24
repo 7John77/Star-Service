@@ -110,7 +110,8 @@ function buildModel(type, texture) {
 export function openViewer(surface, artwork, onPart, onSpinChange) {
   const texture = artwork ? labelTexture(artwork) : null
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-  const options = { alpha: true, antialias: true }
+  const compact = matchMedia('(pointer: coarse), (max-width: 740px)').matches
+  const options = { alpha: true, antialias: true, powerPreference: 'low-power' }
   let canvas = document.createElement('canvas')
   let context = canvas.getContext('webgl2', options)
   let renderer
@@ -122,7 +123,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
       canvas = document.createElement('canvas')
     }
   }
-  renderer ||= createSoftwareRenderer(canvas)
+  renderer ||= createSoftwareRenderer(canvas, compact)
   renderer.domElement.setAttribute('aria-hidden', 'true')
   surface.append(renderer.domElement)
 
@@ -131,16 +132,18 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
   const accents = []
   if (context) {
     renderer.setClearColor(0, 0)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, compact ? 1.35 : 2))
     renderer.toneMapping = ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.12
-    const pmrem = new PMREMGenerator(renderer)
-    const studio = new RoomEnvironment()
-    const environment = pmrem.fromScene(studio, .055)
-    scene.environment = environment.texture
-    scene.environmentIntensity = .67
-    studio.dispose()
-    pmrem.dispose()
+    if (!compact) {
+      const pmrem = new PMREMGenerator(renderer)
+      const studio = new RoomEnvironment()
+      const environment = pmrem.fromScene(studio, .055)
+      scene.environment = environment.texture
+      scene.environmentIntensity = .67
+      studio.dispose()
+      pmrem.dispose()
+    }
     scene.add(new AmbientLight(0xffede3, .43))
     scene.add(new HemisphereLight(0xfff3e6, 0x492424, 1.25))
     for (const [color, intensity, position] of [
@@ -300,7 +303,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
   })
 
   return {
-    set(type) {
+    set(type, animate = true) {
       stopSpin()
       if (current) scene.remove(current.model)
       wheelchair = type === 'wheelchair'
@@ -310,7 +313,7 @@ export function openViewer(surface, artwork, onPart, onSpinChange) {
       positionCamera()
       scene.add(current.model)
       align(frontAngle())
-      rotation = target - (reduce ? 0 : wheelchair ? .30 : .65)
+      rotation = target - (reduce || !animate ? 0 : wheelchair ? .30 : .65)
       for (const [, pin] of pinEntries) pin.classList.remove('active')
       schedule()
     },

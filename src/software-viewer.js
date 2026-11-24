@@ -132,7 +132,7 @@ function rasterize(shape, rgba, depth, width, height) {
   }
 }
 
-export function createSoftwareRenderer(domElement) {
+export function createSoftwareRenderer(domElement, compact = false) {
   const ctx = domElement.getContext('2d')
   if (!ctx) throw new Error('Canvas unavailable')
   const shapes = new WeakMap()
@@ -148,7 +148,7 @@ export function createSoftwareRenderer(domElement) {
     render(scene, camera, inMotion = false) {
       if (!image || moving !== inMotion) {
         moving = inMotion
-        const maxSize = moving ? 580 : 1120
+        const maxSize = compact ? (moving ? 330 : 660) : (moving ? 580 : 1120)
         const scale = Math.min(moving ? 1 : 1.6, maxSize / Math.max(displayWidth, displayHeight))
         width = Math.max(1, Math.round(displayWidth * scale))
         height = Math.max(1, Math.round(displayHeight * scale))

@@ -12,6 +12,7 @@ const assets = {
   '/care-cover.webp': ['care-cover.webp', 'image/webp'],
   '/care-catalogue.json': ['care-catalogue.json', 'application/json; charset=utf-8'],
   '/catalogue.json': ['catalogue.json', 'application/json; charset=utf-8'],
+  '/fire-details.json': ['fire-details.json', 'application/json; charset=utf-8'],
   '/style.css': ['style.css', 'text/css; charset=utf-8'],
   '/fonts.css': ['fonts.css', 'text/css; charset=utf-8'],
   '/commissioner-greek.woff2': ['commissioner-greek.woff2', 'font/woff2'],
@@ -34,7 +35,13 @@ const assets = {
 for (const file of await readdir('src/legacy')) {
   if (file.endsWith('.webp')) assets['/legacy/' + file] = ['legacy/' + file, 'image/webp']
 }
-const bundle = await build({ entryPoints: ['src/site.js'], bundle: true, write: false, format: 'esm', minify: true })
+const viewer = await build({ entryPoints: ['src/viewer.js'], bundle: true, write: false, format: 'esm', minify: true })
+const viewerScript = viewer.outputFiles[0].text
+const viewerPath = '/viewer-' + createHash('sha256').update(viewerScript).digest('hex').slice(0, 12) + '.js'
+const bundle = await build({
+  entryPoints: ['src/site.js'], bundle: true, write: false, format: 'esm', minify: true,
+  define: { __VIEWER_MODULE__: JSON.stringify(viewerPath) },
+})
 const siteScript = bundle.outputFiles[0].text
 const sitePath = '/site-' + createHash('sha256').update(siteScript).digest('hex').slice(0, 12) + '.js'
 const stylesheet = await readFile('src/style.css', 'utf8')
@@ -56,6 +63,7 @@ for (const [path, [name, type]] of Object.entries(assets)) {
 }
 embedded[stylePath] = { body: stylesheet, type: 'text/css; charset=utf-8' }
 embedded[sitePath] = embedded['/site.js'] = { body: siteScript, type: 'text/javascript; charset=utf-8' }
+embedded[viewerPath] = { body: viewerScript, type: 'text/javascript; charset=utf-8' }
 const admin = await build({ entryPoints: ['src/admin.js'], bundle: true, write: false, format: 'esm', minify: true })
 const adminScript = admin.outputFiles[0].text
 const adminStyle = await readFile('src/admin.css', 'utf8')
