@@ -38,6 +38,7 @@ const sectionByType = new Map(sections.flatMap(section => section[3].map(type =>
 const featured = /^(?:Πυροσβεστήρας [36] ?Kg Ξηράς Σκόνης|Πυροσβεστήρας 2 ?Kg CO2 - Έξοδος στο πλάι|Πυροσβεστήρας 9 ?Lt ABF|Τροχήλατος Πυροσβεστήρας 100 ?Lt Αφρού)$/i
 const normalize = (value) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase().replace(/₂/g, '2').replace(/[^\p{L}\p{N}]/gu, '')
 const productTitle = (product) => english ? product.en : product.title
+const illustrativePhoto = tr('Ενδεικτική φωτογραφία', 'Illustrative photo')
 const pageSize = 12
 
 export async function setupCatalogue(pickQuote) {
@@ -130,6 +131,7 @@ export async function setupCatalogue(pickQuote) {
       }
       gallery.append(thumbs)
     }
+    if (product.imageIllustrative) gallery.append(make('figcaption', illustrativePhoto, 'product-photo-note'))
     detail.append(gallery)
     if (product.code) detail.append(make('p', tr('Κωδικός', 'Code') + ' · ' + product.code, 'product-code'))
     if (!product.images.length) detail.append(make('p', tr('Δεν υπάρχει διαθέσιμη φωτογραφία για αυτό το είδος.', 'No photo is available for this item.'), 'product-source-note'))
@@ -188,6 +190,7 @@ export async function setupCatalogue(pickQuote) {
     copy.append(make('small', label), make('strong', productTitle(product)))
     button.classList.toggle('featured', product.isFeatured)
     if (product.code || product.capacity) copy.append(make('span', product.code || product.capacity))
+    if (product.imageIllustrative) copy.append(make('span', illustrativePhoto, 'product-photo-note'))
     button.append(image, copy, make('span', '+', 'product-plus'))
     button.lastElementChild.setAttribute('aria-hidden', 'true')
     button.addEventListener('click', () => openProduct(product))

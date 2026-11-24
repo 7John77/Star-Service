@@ -486,6 +486,18 @@ footer a:hover, .footer-tools button { color: #ffb3a5 }
 .catalog-tools input, .catalog-tools select { width: 100%; min-width: 0; }
 .product-code { font-weight: 740; color: #285646; margin-top: .65rem; }
 .product-source-note { font-size: .88rem; color: var(--muted); }
+.product-display .product-photo-note,
+.product-card-copy > .product-photo-note {
+  justify-self: start;
+  width: fit-content;
+  padding: .18rem .42rem;
+  border-radius: .35rem;
+  background: #e8f1ea;
+  color: #355d4e;
+  font-size: .7rem;
+  font-weight: 650;
+}
+.product-display .product-photo-note { margin-top: .4rem; }
 .product-card img.product-image-missing, .product-display img.product-image-missing { object-fit: contain; padding: 1.9rem; }
 @media (max-width: 750px) {
   .catalog-tools { grid-template-columns: minmax(0, 1fr); }

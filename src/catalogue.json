@@ -26743,7 +26743,9 @@
     "category": "hoses",
     "code": "MBK07-UT-LV112",
     "sku": "0120067",
-    "images": [],
+    "images": [
+      "/legacy/angle-valve-gasket-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -26752,7 +26754,8 @@
         "0120067",
         "0120067"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Λάστιχο Στεγανοποίησης Γωνιακού Κρουνού 2 1/2″",
@@ -26760,7 +26763,9 @@
     "category": "hoses",
     "code": "MBK07-UN-LV212",
     "sku": "0120053",
-    "images": [],
+    "images": [
+      "/legacy/angle-valve-gasket-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -26769,7 +26774,8 @@
         "0120053",
         "0120053"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Λάστιχο Στεγανοποίησης Γωνιακού Κρουνού 2″",
@@ -26777,7 +26783,9 @@
     "category": "hoses",
     "code": "MBK07-UN-LV2",
     "sku": "0120054",
-    "images": [],
+    "images": [
+      "/legacy/angle-valve-gasket-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -26786,7 +26794,8 @@
         "0120054",
         "0120054"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Λευκό Λάστιχο Στεγανοποίησης Ρακόρ 1 1/2”",
@@ -33093,7 +33102,9 @@
     "category": "other",
     "code": "KX11-ACE-KS-NEW",
     "sku": "0126043",
-    "images": [],
+    "images": [
+      "/legacy/sprinkler-wrench-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -33102,7 +33113,8 @@
         "0126043",
         "0126043"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Κλειδί ρυθμ. για Κλείστρα Τροχήλατων Πυρ/ρων",
@@ -49217,11 +49229,13 @@
   },
   {
     "title": "Ακροφύσια",
-    "en": "Ακροφύσια",
+    "en": "Discharge nozzles",
     "category": "systems",
     "code": "0133051",
     "sku": "0133051",
-    "images": [],
+    "images": [
+      "/legacy/suppression-nozzle-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -49230,7 +49244,8 @@
         "0133051",
         "0133051"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Αυτόματο πυροσβεστικό συγκρότημα – UL",
@@ -49768,11 +49783,13 @@
   },
   {
     "title": "Καλώδια Ανίχνευσης",
-    "en": "Καλώδια Ανίχνευσης",
+    "en": "Heat detection cables",
     "category": "systems",
     "code": "0133051",
     "sku": "0133051",
-    "images": [],
+    "images": [
+      "/legacy/heat-detection-cable-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -49781,7 +49798,8 @@
         "0133051",
         "0133051"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Κιτ Κατάσβεσης Μπαταριών Ιόντων Λιθίου (Large)",
@@ -50148,11 +50166,13 @@
   },
   {
     "title": "Πυροσβεστήρες",
-    "en": "Πυροσβεστήρες",
+    "en": "Fire extinguishers",
     "category": "systems",
     "code": "0133051",
     "sku": "0133051",
-    "images": [],
+    "images": [
+      "/legacy/suppression-cylinder-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -50161,7 +50181,8 @@
         "0133051",
         "0133051"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "ΣΥΣΤΗΜΑ «THESEUS»®FK-5-1-12",
@@ -50299,11 +50320,13 @@
   },
   {
     "title": "Σύνδεσμοι τ. απόκρισης",
-    "en": "Σύνδεσμοι τ. απόκρισης",
+    "en": "Thermal response links",
     "category": "systems",
     "code": "0133051",
     "sku": "0133051",
-    "images": [],
+    "images": [
+      "/legacy/thermal-link-reference.webp"
+    ],
     "storeListed": false,
     "specs": [
       [
@@ -50312,7 +50335,8 @@
         "0133051",
         "0133051"
       ]
-    ]
+    ],
+    "imageIllustrative": true
   },
   {
     "title": "Σύστημα κατάσβεσης Water Mist",
